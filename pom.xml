@@ -9,6 +9,14 @@
   <version>1.0</version>
   <name>HadoopJobs</name>
   <url>http://maven.apache.org</url>
+
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <hbase.version>0.98.6-hadoop2</hbase.version>
+  </properties>
+
+
   <dependencies>
 
     <dependency>
@@ -32,6 +40,18 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>1.7.25</version>
+    </dependency>
+
+    <!-- hbase client -->
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase-server</artifactId>
+      <version>${hbase.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase-client</artifactId>
+      <version>${hbase.version}</version>
     </dependency>
 
   </dependencies>

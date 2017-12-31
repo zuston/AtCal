@@ -9,17 +9,20 @@ public class TraceRecordParser {
     private String site_name;
     private String scan_time;
     private String des_site_name;
-
+    private String site_id;
     private String desp;
 
-    public void parse(String record){
+    public boolean parse(String record){
         String [] valueArr = record.split("#");
+        if (valueArr.length < 16 )   return false;
         trace_id = valueArr[0];
         ewb_no = valueArr[1];
+        site_id = valueArr[3];
         site_name = valueArr[5];
         scan_time = valueArr[10];
         des_site_name = valueArr[12];
         desp = valueArr[16];
+        return true;
     }
 
 
@@ -45,5 +48,9 @@ public class TraceRecordParser {
 
     public String getDesp() {
         return desp;
+    }
+
+    public String getSite_id(){
+        return site_id;
     }
 }

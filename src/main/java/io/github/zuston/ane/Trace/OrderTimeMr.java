@@ -1,5 +1,6 @@
 package io.github.zuston.ane.Trace;
 
+import io.github.zuston.ane.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -19,6 +20,12 @@ import java.util.List;
  * Created by zuston on 2017/12/18.
  */
 
+enum COUNTER {
+    SITE_ID_MISSING,
+
+    ID_2_NAME_ERROR
+}
+
 public class OrderTimeMr extends Configured implements Tool {
 
     static class OrderTimeMapper extends Mapper<LongWritable, Text, Text, Text>{
@@ -28,7 +35,7 @@ public class OrderTimeMr extends Configured implements Tool {
 
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            parser.parse(value.toString());
+            if (!parser.parse(value.toString())) return;
             String ewb_no = parser.getEwb_no();
             tempTextValue.set(ewb_no);
             context.write(tempTextValue,value);
@@ -37,6 +44,9 @@ public class OrderTimeMr extends Configured implements Tool {
 
     static class OrderTimeReduer extends Reducer<Text, Text, Text, LongWritable>{
         private TraceRecordParser parser = new TraceRecordParser();
+
+        Text tempKeyText = new Text();
+        LongWritable tempValueLong = new LongWritable();
 
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -49,7 +59,12 @@ public class OrderTimeMr extends Configured implements Tool {
                 String site_name = parser.getSite_name();
                 String des_site_name = parser.getDes_site_name();
                 String desp = parser.getDesp();
-                OrderEntity orderEntity = new OrderEntity(scan_time, site_name, des_site_name, desp);
+                String site_id = parser.getSite_id();
+                if (site_id == null){
+                    context.getCounter(COUNTER.SITE_ID_MISSING).increment(1);
+                    continue;
+                }
+                OrderEntity orderEntity = new OrderEntity(scan_time, site_name, des_site_name, desp, site_id);
                 orderEntities.add(orderEntity);
             }
 
@@ -70,9 +85,12 @@ public class OrderTimeMr extends Configured implements Tool {
 
                 long timePlus = Timestamp.valueOf(endEntity.getScan_time()).getTime()-
                         Timestamp.valueOf(startEntity.getScan_time()).getTime();
+                tempKeyText.set(startEntity.getSite_id()+"#"+endEntity.getSite_id());
+                // sort by minutes
+                tempValueLong.set(timePlus/1000/60);
                 context.write(
-                        new Text(startEntity.getSite_name()+"#"+endEntity.getSite_name()),
-                        new LongWritable(timePlus/1000/60)
+                        tempKeyText,
+                        tempValueLong
                 );
             }
         }
@@ -116,12 +134,14 @@ class OrderEntity{
     private String des_site_name;
     // 运单状态描述
     private String desp;
+    private String site_id;
 
-    public OrderEntity(String scan_time, String site_name, String des_site_name, String desp) {
+    public OrderEntity(String scan_time, String site_name, String des_site_name, String desp, String site_id) {
         this.scan_time = scan_time;
         this.site_name = site_name;
         this.des_site_name = des_site_name;
         this.desp = desp;
+        this.site_id = site_id;
     }
 
     public String getScan_time() {
@@ -135,6 +155,10 @@ class OrderEntity{
     public String getSite_name() {
         return site_name;
 
+    }
+
+    public String getSite_id(){
+        return site_id;
     }
 
     public String getDes_site_name() {
