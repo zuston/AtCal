@@ -36,6 +36,10 @@ public class MetaSiteImporterMr extends Configured implements Tool {
             }
             String siteId = splitArr[0];
             String siteName = splitArr[1];
+            if (siteId.equals("") || siteId == null || siteName.equals("") || siteName == null){
+                context.getCounter(META_COUNTER.ID_2_ERROR).increment(1);
+                return;
+            }
             byte [] rowKey = Bytes.toBytes(siteId);
             Put condition = new Put(rowKey);
             condition.add(
