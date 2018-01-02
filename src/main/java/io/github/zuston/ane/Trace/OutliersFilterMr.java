@@ -74,7 +74,7 @@ public class OutliersFilterMr extends Configured implements Tool{
                 context.getCounter(Counter.BASELINE_ERROR).increment(1);
                 return;
             }
-            long baseLineAvg = Long.parseLong(bl[0]);
+            double baseLineAvg = Double.parseDouble(bl[0]);
             // 标准差
             double baseLineStandardDeviation = Math.sqrt(Double.parseDouble(bl[1]));
 
