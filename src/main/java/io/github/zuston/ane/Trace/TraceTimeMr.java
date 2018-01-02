@@ -102,11 +102,13 @@ public class TraceTimeMr extends Configured implements Tool {
         job.setMapperClass(TraceTimeMapper.class);
 
         // // TODO: 2017/12/30 待优化
-        if (strings[3].equals("1")){
-            job.setReducerClass(TraceTimeReducer.class);
-        }else{
-            job.setReducerClass(TraceTimeKmeansReducer.class);
-        }
+//        if (strings[3].equals("1")){
+//            job.setReducerClass(TraceTimeReducer.class);
+//        }else{
+//            job.setReducerClass(TraceTimeKmeansReducer.class);
+//        }
+
+        job.setReducerClass(TraceTimeReducer.class);
 
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(LongWritable.class);

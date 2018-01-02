@@ -12,6 +12,12 @@ public enum Counter {
     AVEARGE_WIN_COUNT,
     MIDDLE_WIN_COUNT,
 
+    /**
+     * 一次迭代的参考数据错误
+     * 一次迭代的离群点数目
+     * 未筛选之前总计条目数
+     */
     BASELINE_ERROR,
-    ABSORT_COUNT
+    ABSORT_COUNT,
+    BEFORE_FILTER_ORDER_COUNT
 }

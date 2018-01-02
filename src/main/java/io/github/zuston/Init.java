@@ -46,7 +46,7 @@ public class Init {
                 exitCode = ToolRunner.run(new OrderTimeMr(), newArgs);
                 break;
             case TRACE_NUMBER :
-                String [] opts =  new String[]{args[1], args[2], reducerNum, args[4]};
+                String [] opts =  new String[]{args[1], args[2], reducerNum};
                 exitCode = ToolRunner.run(new TraceTimeMr(), opts);
                 break;
 

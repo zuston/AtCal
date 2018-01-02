@@ -34,6 +34,7 @@ public class OutliersFilterMr extends Configured implements Tool{
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String[] record = value.toString().split("\\s+");
+            context.getCounter(Counter.BEFORE_FILTER_ORDER_COUNT).increment(1);
             context.write(new FilterPair(record[0],"0"),new Text(record[1]));
         }
     }
@@ -41,6 +42,7 @@ public class OutliersFilterMr extends Configured implements Tool{
     static class OriginalDateMapper extends Mapper<LongWritable, Text, FilterPair, Text>{
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            context.getCounter(Counter.BEFORE_FILTER_ORDER_COUNT).increment(1);
             String[] record = value.toString().split("\\s+");
             context.write(new FilterPair(record[0],"1"),new Text(record[1]));
         }
