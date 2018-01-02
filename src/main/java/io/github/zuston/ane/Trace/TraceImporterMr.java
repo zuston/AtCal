@@ -49,6 +49,8 @@ public class TraceImporterMr extends Configured implements Tool {
 
     }
 
+    public static boolean site_in_tag = false;
+
     /**
      *
      *     site_name ------> sites:A B C D E F
@@ -66,6 +68,12 @@ public class TraceImporterMr extends Configured implements Tool {
 
             String startSite = arrs[0].split("#")[0];
             String endSite = arrs[0].split("#")[1];
+            // 进出表的入库
+            if (site_in_tag){
+                String temp = startSite;
+                startSite = endSite;
+                endSite = temp;
+            }
             String month = arrs[0].split("#")[2].split("-")[1];
 
             if (startSite.equals("") || endSite.equals("") || month.equals(""))
@@ -103,6 +111,9 @@ public class TraceImporterMr extends Configured implements Tool {
         Job job = JobGenerator.HbaseImportJobGnerator(this, this.getConf(),strings);
         job.setJobName("TraceTime2Hbase");
         job.setMapperClass(HS_OPT_TRACE_ImporterMapper.class);
+        if (strings[1].toLowerCase().contains("in")){
+            site_in_tag = true;
+        }
         return job.waitForCompletion(true) ? 0 : 1;
     }
 }
