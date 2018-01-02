@@ -96,6 +96,10 @@ public class TraceImporterMr extends Configured implements Tool {
     }
 
     public int run(String[] strings) throws Exception {
+        this.getConf().set("hbase.master", "master:60000");
+        this.getConf().set("hbase.zookeeper.quorum",
+                "slave1,slave2,slave3");
+
         Job job = JobGenerator.HbaseImportJobGnerator(this, this.getConf(),strings);
         job.setJobName("TraceTime2Hbase");
         job.setMapperClass(HS_OPT_TRACE_ImporterMapper.class);
