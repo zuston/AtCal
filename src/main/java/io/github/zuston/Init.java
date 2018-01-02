@@ -1,7 +1,6 @@
 package io.github.zuston;
 
 import io.github.zuston.ane.Trace.*;
-import io.github.zuston.example.WordFrenquency;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
@@ -22,8 +21,7 @@ public class Init {
     public static final int SITE_2_NAME = 4;
     public static final int SITE_2_NAME_IMP = 5;
     public static final int TRACE_COMPAR = 6;
-
-    public static final int WORDFRENQUENCY_NUMBER = 100;
+    public static final int FILTER = 7;
 
     static {
         commandHm.put("order", ORDER_NUMBER);
@@ -32,21 +30,12 @@ public class Init {
         commandHm.put("site2name".toLowerCase(), SITE_2_NAME);
         commandHm.put("site2nameImp".toLowerCase(), SITE_2_NAME_IMP );
         commandHm.put("traceCompar".toLowerCase(), TRACE_COMPAR);
-        commandHm.put("wf", WORDFRENQUENCY_NUMBER);
+        commandHm.put("filter".toLowerCase(), FILTER);
     }
 
     public static void main(String[] args) throws Exception {
-//        if (args.length>4){
-//            loggerFactory.error("please check the command line");
-//            return;
-//        }
 
-        // TODO: 2017/12/30 引入命令行操作
         String commandOption = args[0].toLowerCase();
-//        String [] opts = new String[args.length-1];
-//        for (int i=1;i<args.length;i++){
-//            opts[i-1] = args[i];
-//        }
         String reducerNum = args.length<=3 ? "1" : args[3];
         String [] newArgs =  new String[]{args[1], args[2], reducerNum};
 
@@ -77,9 +66,9 @@ public class Init {
                 exitCode = ToolRunner.run(new TraceTimeComparsionMr(), newArgs);
                 break;
 
-            // chenjie 跑实验的
-            case WORDFRENQUENCY_NUMBER :
-                exitCode = ToolRunner.run(new WordFrenquency(), newArgs);
+            case FILTER :
+                String [] argArr =  new String[]{args[1], args[2], args[3], args[4]};
+                exitCode = ToolRunner.run(new OutliersFilterMr(), argArr);
                 break;
 
             default:

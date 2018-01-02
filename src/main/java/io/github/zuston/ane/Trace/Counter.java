@@ -10,5 +10,8 @@ public enum Counter {
     ID_2_NAME_ERROR,
 
     AVEARGE_WIN_COUNT,
-    MIDDLE_WIN_COUNT
+    MIDDLE_WIN_COUNT,
+
+    BASELINE_ERROR,
+    ABSORT_COUNT
 }
