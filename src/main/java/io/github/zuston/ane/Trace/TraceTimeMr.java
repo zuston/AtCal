@@ -22,13 +22,13 @@ public class TraceTimeMr extends Configured implements Tool {
     static class TraceTimeMapper extends Mapper<LongWritable, Text, Text, LongWritable>{
 
         Text tempKeyText = new Text();
-        LongWritable tempValueLong = new LongWritable();
+        LongWritable tempValueText = new LongWritable();
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String[] record = value.toString().split("\\s+");
             tempKeyText.set(record[0]);
-            tempValueLong.set(Long.valueOf(record[1]));
-            context.write(tempKeyText, tempValueLong);
+            tempValueText.set(Long.parseLong(record[1]));
+            context.write(tempKeyText, tempValueText);
         }
     }
 
@@ -40,24 +40,24 @@ public class TraceTimeMr extends Configured implements Tool {
         public void reduce(Text key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
             long sum = 0;
             int count = 0;
-            List<LongWritable> valueList = new ArrayList<LongWritable>();
+            List<Long> valueList = new ArrayList<Long>();
             for (LongWritable value : values){
                 count ++ ;
                 sum += Long.valueOf(value.toString());
-                valueList.add(value);
+                valueList.add(Long.valueOf(value.toString()));
             }
             // 平均值
             double average = sum / count;
 
             long varianceSum = 0;
-            for (LongWritable value : valueList){
-                Double differenceValue = Double.valueOf(value.toString()) - average;
+            for (Long value : valueList){
+                Double differenceValue = Double.valueOf(value) - average;
                 varianceSum += Math.pow((differenceValue),2);
             }
             // 方差
             long varianceSumAverage = varianceSum / count;
             // 日期，均值，方差，样本总量
-            tempValueLong.set(average+":"+varianceSumAverage);
+            tempValueLong.set(average+":"+varianceSumAverage+":"+count);
             context.write(key, tempValueLong);
         }
     }

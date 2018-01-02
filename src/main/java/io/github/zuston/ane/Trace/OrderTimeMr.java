@@ -81,6 +81,7 @@ public class OrderTimeMr extends Configured implements Tool {
                     return (int) (Timestamp.valueOf(o1.getScan_time()).getTime() - Timestamp.valueOf(o2.getScan_time()).getTime());
                 }
             });
+            recordTime = recordTime.substring(0,7);
             // TODO: 2017/12/18 检测订单流程的完整性
             // 依次按照运单来计算时间
             for (int i=1; i<orderEntities.size(); i++){
@@ -92,9 +93,9 @@ public class OrderTimeMr extends Configured implements Tool {
 
                 long timePlus = Timestamp.valueOf(endEntity.getScan_time()).getTime()-
                         Timestamp.valueOf(startEntity.getScan_time()).getTime();
-                tempKeyText.set(startEntity.getSite_id()+"#"+endEntity.getSite_id());
+                tempKeyText.set(startEntity.getSite_id()+"#"+endEntity.getSite_id()+"#"+recordTime);
                 // sort by minutes
-                tempValueText.set(String.valueOf(timePlus/1000/60)+"#"+recordTime);
+                tempValueText.set(String.valueOf(timePlus/1000/60));
                 context.write(
                         tempKeyText,
                         tempValueText

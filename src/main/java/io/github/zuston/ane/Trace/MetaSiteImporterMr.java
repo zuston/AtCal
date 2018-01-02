@@ -33,6 +33,7 @@ public class MetaSiteImporterMr extends Configured implements Tool {
             if (splitArr.length != 2){
                 context.getCounter(META_COUNTER.ID_2_ERROR).increment(1);
                 return;
+
             }
             String siteId = splitArr[0];
             String siteName = splitArr[1];
