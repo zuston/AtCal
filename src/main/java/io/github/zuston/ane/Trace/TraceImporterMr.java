@@ -68,6 +68,9 @@ public class TraceImporterMr extends Configured implements Tool {
             String endSite = arrs[0].split("#")[1];
             String month = arrs[0].split("#")[2].split("-")[1];
 
+            if (startSite.equals("") || endSite.equals("") || month.equals(""))
+                return;
+
             byte[] rowKey = Bytes.toBytes(startSite);
             Put putCondition = new Put(rowKey);
             putCondition.add(
