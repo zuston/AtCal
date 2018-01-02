@@ -42,20 +42,27 @@ public class OrderTimeMr extends Configured implements Tool {
         }
     }
 
-    static class OrderTimeReduer extends Reducer<Text, Text, Text, LongWritable>{
+    static class OrderTimeReduer extends Reducer<Text, Text, Text, Text>{
         private TraceRecordParser parser = new TraceRecordParser();
 
         Text tempKeyText = new Text();
-        LongWritable tempValueLong = new LongWritable();
+        Text tempValueText = new Text();
 
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 
             // 按照时间来排序,聚合的应该是完整的一个订单
+            // 补充计算到 hdfs 中保留 开始时间
             List<OrderEntity> orderEntities = new ArrayList<OrderEntity>();
+            String recordTime = "";
+            int tagCount = 0;
             for (Text value : values){
                 parser.parse(value.toString());
                 String scan_time = parser.getScan_time();
+                if (tagCount==0){
+                    recordTime = scan_time;
+                }
+                tagCount ++ ;
                 String site_name = parser.getSite_name();
                 String des_site_name = parser.getDes_site_name();
                 String desp = parser.getDesp();
@@ -87,10 +94,10 @@ public class OrderTimeMr extends Configured implements Tool {
                         Timestamp.valueOf(startEntity.getScan_time()).getTime();
                 tempKeyText.set(startEntity.getSite_id()+"#"+endEntity.getSite_id());
                 // sort by minutes
-                tempValueLong.set(timePlus/1000/60);
+                tempValueText.set(String.valueOf(timePlus/1000/60)+"#"+recordTime);
                 context.write(
                         tempKeyText,
-                        tempValueLong
+                        tempValueText
                 );
             }
         }
@@ -117,7 +124,7 @@ public class OrderTimeMr extends Configured implements Tool {
         job.setReducerClass(OrderTimeReduer.class);
 
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(LongWritable.class);
+        job.setOutputValueClass(Text.class);
 
         // TODO: 2017/12/19 待调优 reducer 数目
 //        job.setNumReduceTasks(1);

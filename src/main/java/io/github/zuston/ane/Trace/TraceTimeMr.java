@@ -32,7 +32,7 @@ public class TraceTimeMr extends Configured implements Tool {
         }
     }
 
-    // 计算均值的代价函数
+    // 计算均值的函数
     static class TraceTimeReducer extends Reducer<Text, LongWritable, Text, Text>{
 
         Text tempValueLong = new Text();
@@ -56,7 +56,7 @@ public class TraceTimeMr extends Configured implements Tool {
             }
             // 方差
             long varianceSumAverage = varianceSum / count;
-
+            // 日期，均值，方差，样本总量
             tempValueLong.set(average+":"+varianceSumAverage);
             context.write(key, tempValueLong);
         }
