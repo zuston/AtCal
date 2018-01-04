@@ -2,8 +2,10 @@ package io.github.zuston.ane.Util;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat2;
 import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -56,6 +58,31 @@ public class JobGenerator {
         job.setOutputValueClass(Put.class);
         job.setNumReduceTasks(0);
         job.setOutputFormatClass(TableOutputFormat.class);
+        return job;
+    }
+
+    // bulk load
+    public static Job HbaseQuickImportJobGnerator(Tool tool, Configuration configuration, String[] args, HTable table) throws IOException {
+        configuration.set("hbase.master", "master:60000");
+        configuration.set("hbase.zookeeper.quorum","slave1,slave2,slave3");
+        Job job = new Job(configuration);
+
+        job.setJarByClass(tool.getClass());
+        job.setOutputKeyClass(ImmutableBytesWritable.class);
+        job.setMapOutputValueClass(Put.class);
+
+        job.setSpeculativeExecution(false);
+        job.setReduceSpeculativeExecution(false);
+
+        job.setInputFormatClass(TextInputFormat.class);
+        job.setOutputFormatClass(HFileOutputFormat2.class);
+
+        FileInputFormat.setInputPaths(job, args[0]);
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        table = new HTable(configuration, args[2]);
+        HFileOutputFormat2.configureIncrementalLoad(job, table);
+
         return job;
     }
 }
