@@ -2,7 +2,6 @@ package io.github.zuston.ane.Ewb;
 
 import io.github.zuston.ane.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.FsShell;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
@@ -74,13 +73,13 @@ public class EwbImporterMr extends Configured implements Tool {
             job.setJobName("Ewb2Hbase");
             job.setMapperClass(EwbImporterMapper.class);
             if (job.waitForCompletion(true)){
-                FsShell fsShell = new FsShell();
-                try {
-                    fsShell.run(new String[]{ "-chmod", "-R", "777", strings[1] });
-                }catch (Exception e){
-                    logger.error("the ewb hfile permission error ", e);
-                    throw new Exception(e);
-                }
+//                FsShell fsShell = new FsShell();
+//                try {
+//                    fsShell.run(new String[]{ "-chmod", "-R", "777", strings[1] });
+//                }catch (Exception e){
+//                    logger.error("the ewb hfile permission error ", e);
+//                    throw new Exception(e);
+//                }
                 LoadIncrementalHFiles loader = new LoadIncrementalHFiles(this.getConf());
                 loader.doBulkLoad(new Path(strings[1]), table);
             }else {
