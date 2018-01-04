@@ -1,5 +1,7 @@
 package io.github.zuston;
 
+import io.github.zuston.ane.Ewb.EwbImporterMr;
+import io.github.zuston.ane.Trace.OriginalTraceImporterMr;
 import io.github.zuston.ane.TraceTime.*;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.ToolRunner;
@@ -23,6 +25,9 @@ public class Init {
     public static final int TRACE_COMPAR = 6;
     public static final int FILTER = 7;
 
+    public static final int IMPTRACE = 8;
+    public static final int IMPEWB = 9;
+
     static {
         commandHm.put("order", ORDER_NUMBER);
         commandHm.put("trace", TRACE_NUMBER);
@@ -31,6 +36,8 @@ public class Init {
         commandHm.put("site2nameImp".toLowerCase(), SITE_2_NAME_IMP );
         commandHm.put("traceCompar".toLowerCase(), TRACE_COMPAR);
         commandHm.put("filter".toLowerCase(), FILTER);
+        commandHm.put("imptrace".toLowerCase(), IMPTRACE);
+        commandHm.put("impewb".toLowerCase(), IMPEWB);
     }
 
     public static void main(String[] args) throws Exception {
@@ -71,6 +78,15 @@ public class Init {
                 exitCode = ToolRunner.run(new OutliersFilterMr(), argArr);
                 break;
 
+            case IMPTRACE :
+                exitCode = ToolRunner.run(HBaseConfiguration.create(), new OriginalTraceImporterMr(), newArgs);
+                break;
+
+            case IMPEWB :
+                exitCode = ToolRunner.run(HBaseConfiguration.create(), new EwbImporterMr(), newArgs);
+                break;
+
+            
             default:
                 exitCode = 0;
                 break;
