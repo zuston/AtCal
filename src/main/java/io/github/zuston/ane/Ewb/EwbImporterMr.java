@@ -2,11 +2,9 @@ package io.github.zuston.ane.Ewb;
 
 import io.github.zuston.ane.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
-import org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -72,20 +70,21 @@ public class EwbImporterMr extends Configured implements Tool {
             Job job = JobGenerator.HbaseQuickImportJobGnerator(this, this.getConf(),strings, table);
             job.setJobName("Ewb2Hbase");
             job.setMapperClass(EwbImporterMapper.class);
-            if (job.waitForCompletion(true)){
-//                FsShell fsShell = new FsShell();
-//                try {
-//                    fsShell.run(new String[]{ "-chmod", "-R", "777", strings[1] });
-//                }catch (Exception e){
-//                    logger.error("the ewb hfile permission error ", e);
-//                    throw new Exception(e);
-//                }
-                LoadIncrementalHFiles loader = new LoadIncrementalHFiles(this.getConf());
-                loader.doBulkLoad(new Path(strings[1]), table);
-            }else {
-                logger.error("the ewb generate hfile error");
-                return 0;
-            }
+//            if (job.waitForCompletion(true)){
+////                FsShell fsShell = new FsShell();
+////                try {
+////                    fsShell.run(new String[]{ "-chmod", "-R", "777", strings[1] });
+////                }catch (Exception e){
+////                    logger.error("the ewb hfile permission error ", e);
+////                    throw new Exception(e);
+////                }
+//                LoadIncrementalHFiles loader = new LoadIncrementalHFiles(this.getConf());
+//                loader.doBulkLoad(new Path(strings[1]), table);
+//            }else {
+//                logger.error("the ewb generate hfile error");
+//                return 0;
+//            }
+            return job.waitForCompletion(true) ? 1 : 0;
 
         }catch (Exception e){
             e.printStackTrace();
@@ -93,6 +92,6 @@ public class EwbImporterMr extends Configured implements Tool {
             if (table!=null)    table.close();
         }
 
-        return 1;
+        return 0;
     }
 }

@@ -2,6 +2,7 @@ package io.github.zuston.ane.Trace;
 
 import io.github.zuston.ane.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -53,6 +54,7 @@ public class OriginalTraceImporterMr extends Configured implements Tool {
                     field.setAccessible(true);
                     String fieldName = field.getName();
                     String fieldValue = (String) field.get(parser);
+                    if (fieldValue.equals(""))  continue;
                     condition.add(COLUMN_FAMILIY_INFO,Bytes.toBytes(fieldName),Bytes.toBytes(fieldValue));
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
@@ -65,9 +67,20 @@ public class OriginalTraceImporterMr extends Configured implements Tool {
     }
 
     public int run(String[] strings) throws Exception {
-        Job job = JobGenerator.HbaseImportJobGnerator(this, this.getConf(),strings);
-        job.setJobName("OriginalTrace2Hbase");
-        job.setMapperClass(TraceImporterMapper.class);
-        return job.waitForCompletion(true) ? 0 : 1;
+        HTable table = null;
+        try {
+            Job job = JobGenerator.HbaseQuickImportJobGnerator(this, this.getConf(),strings, table);
+            job.setJobName("Trace2Hbase");
+            job.setMapperClass(TraceImporterMapper.class);
+
+            return job.waitForCompletion(true) ? 1 : 0;
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            if (table!=null)    table.close();
+        }
+
+        return 0;
     }
 }
