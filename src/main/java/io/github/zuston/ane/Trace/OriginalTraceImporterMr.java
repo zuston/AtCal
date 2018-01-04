@@ -25,7 +25,7 @@ enum ERROR {
 }
 public class OriginalTraceImporterMr extends Configured implements Tool {
 
-    static final byte[] COLUMN_FAMILIY_INFO = Bytes.toBytes("Info");
+    static final byte[] COLUMN_FAMILIY_INFO = Bytes.toBytes("info");
 
     public static OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
 

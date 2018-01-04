@@ -86,7 +86,7 @@ public class Init {
                 exitCode = ToolRunner.run(HBaseConfiguration.create(), new EwbImporterMr(), newArgs);
                 break;
 
-            
+
             default:
                 exitCode = 0;
                 break;
