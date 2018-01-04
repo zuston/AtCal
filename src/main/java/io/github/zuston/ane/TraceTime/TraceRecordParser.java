@@ -1,9 +1,10 @@
-package io.github.zuston.ane.Trace;
+package io.github.zuston.ane.TraceTime;
 
 /**
  * Created by zuston on 2017/12/18.
  */
 public class TraceRecordParser {
+
     private String trace_id;
     private String ewb_no;
     private String site_name;

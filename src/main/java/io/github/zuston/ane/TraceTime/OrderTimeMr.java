@@ -1,4 +1,4 @@
-package io.github.zuston.ane.Trace;
+package io.github.zuston.ane.TraceTime;
 
 import io.github.zuston.ane.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;

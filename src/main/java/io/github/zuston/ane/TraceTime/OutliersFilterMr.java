@@ -1,4 +1,4 @@
-package io.github.zuston.ane.Trace;
+package io.github.zuston.ane.TraceTime;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;

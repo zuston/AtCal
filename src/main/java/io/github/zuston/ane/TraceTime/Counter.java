@@ -1,4 +1,4 @@
-package io.github.zuston.ane.Trace;
+package io.github.zuston.ane.TraceTime;
 
 /**
  * Created by zuston on 2017/12/30.

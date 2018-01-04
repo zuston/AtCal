@@ -1,4 +1,4 @@
-package io.github.zuston.ane.Trace;
+package io.github.zuston.ane.TraceTime;
 
 import io.github.zuston.ane.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
@@ -17,7 +17,7 @@ import java.util.HashMap;
 /**
  * Created by zuston on 2017/12/22.
  */
-public class TraceImporterMr extends Configured implements Tool {
+public class TraceCalculateTimeImporterMr extends Configured implements Tool {
     // create "AnalysisTraceTime_Out","January","February","March","April","May","June","July","August","September","October","November","December"
     public static final byte[] HS_OPT_TRACE_COLUMN_FAMILY_JAN = Bytes.toBytes("January");
     public static final byte[] HS_OPT_TRACE_COLUMN_FAMILY_FEB = Bytes.toBytes("February");

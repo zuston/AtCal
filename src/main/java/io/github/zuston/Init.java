@@ -1,6 +1,6 @@
 package io.github.zuston;
 
-import io.github.zuston.ane.Trace.*;
+import io.github.zuston.ane.TraceTime.*;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ public class Init {
                 break;
 
             case TRACE_IMPORT_NUMBER :
-                exitCode = ToolRunner.run(HBaseConfiguration.create(), new TraceImporterMr(), newArgs);
+                exitCode = ToolRunner.run(HBaseConfiguration.create(), new TraceCalculateTimeImporterMr(), newArgs);
                 break;
 
             case SITE_2_NAME :

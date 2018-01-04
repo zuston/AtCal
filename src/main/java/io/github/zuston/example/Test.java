@@ -33,5 +33,8 @@ public class Test {
 //        576705     column=December:576705_VAR, timestamp=1514875593598, value=1340028
 //
 //                拿这一条方差较大的数据来说，按照 95% 的可信区间，得出 2028+-50.4
+
+
+        System.out.println(String.format("%s:sdsdsd","hello world"));
     }
 }
