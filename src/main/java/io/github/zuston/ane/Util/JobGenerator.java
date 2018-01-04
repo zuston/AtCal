@@ -68,7 +68,7 @@ public class JobGenerator {
         Job job = new Job(configuration);
 
         job.setJarByClass(tool.getClass());
-        job.setOutputKeyClass(ImmutableBytesWritable.class);
+        job.setMapOutputKeyClass(ImmutableBytesWritable.class);
         job.setMapOutputValueClass(Put.class);
 
         job.setSpeculativeExecution(false);
@@ -79,6 +79,8 @@ public class JobGenerator {
 
         FileInputFormat.setInputPaths(job, args[0]);
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        job.setNumReduceTasks(0);
+
 
         table = new HTable(configuration, args[2]);
         HFileOutputFormat2.configureIncrementalLoad(job, table);
