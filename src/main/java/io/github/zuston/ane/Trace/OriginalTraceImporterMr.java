@@ -73,6 +73,8 @@ public class OriginalTraceImporterMr extends Configured implements Tool {
             job.setJobName("Trace2Hbase");
             job.setMapperClass(TraceImporterMapper.class);
 
+            job.setNumReduceTasks(18);
+
             return job.waitForCompletion(true) ? 1 : 0;
 
         }catch (Exception e){

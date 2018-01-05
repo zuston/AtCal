@@ -28,6 +28,8 @@ public class Init {
     public static final int IMPTRACE = 8;
     public static final int IMPEWB = 9;
 
+    public static final int EWB_SAMPLE = 10;
+
     static {
         commandHm.put("order", ORDER_NUMBER);
         commandHm.put("trace", TRACE_NUMBER);
@@ -38,6 +40,7 @@ public class Init {
         commandHm.put("filter".toLowerCase(), FILTER);
         commandHm.put("imptrace".toLowerCase(), IMPTRACE);
         commandHm.put("impewb".toLowerCase(), IMPEWB);
+        commandHm.put("sampleewb", EWB_SAMPLE);
     }
 
     public static void main(String[] args) throws Exception {
@@ -84,6 +87,10 @@ public class Init {
 
             case IMPEWB :
                 exitCode = ToolRunner.run(HBaseConfiguration.create(), new EwbImporterMr(), newArgs);
+                break;
+
+            case EWB_SAMPLE :
+                exitCode = ToolRunner.run(new EwbImporterMr(), newArgs);
                 break;
 
 
