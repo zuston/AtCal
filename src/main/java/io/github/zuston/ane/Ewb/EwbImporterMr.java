@@ -84,6 +84,7 @@ public class EwbImporterMr extends Configured implements Tool {
 //                logger.error("the ewb generate hfile error");
 //                return 0;
 //            }
+            job.getConfiguration().setStrings("mapreduce.reduce.shuffle.input.buffer.percent", "0.1");
             return job.waitForCompletion(true) ? 1 : 0;
 
         }catch (Exception e){
