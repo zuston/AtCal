@@ -2,6 +2,7 @@ package io.github.zuston;
 
 import io.github.zuston.ane.Ewb.EwbDataSampleCollector;
 import io.github.zuston.ane.Ewb.EwbImporterMr;
+import io.github.zuston.ane.Ewb.HbaseSplitRegionSetting;
 import io.github.zuston.ane.Trace.OriginalTraceImporterMr;
 import io.github.zuston.ane.TraceTime.*;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -30,6 +31,7 @@ public class Init {
     public static final int IMPEWB = 9;
 
     public static final int EWB_SAMPLE = 10;
+    public static final int EWB_CREATE_TABLE = 11;
 
     static {
         commandHm.put("order", ORDER_NUMBER);
@@ -42,6 +44,7 @@ public class Init {
         commandHm.put("imptrace".toLowerCase(), IMPTRACE);
         commandHm.put("impewb".toLowerCase(), IMPEWB);
         commandHm.put("sampleewb", EWB_SAMPLE);
+        commandHm.put("ewbcreatetable", EWB_CREATE_TABLE);
     }
 
     public static void main(String[] args) throws Exception {
@@ -92,6 +95,10 @@ public class Init {
 
             case EWB_SAMPLE :
                 exitCode = ToolRunner.run(new EwbDataSampleCollector(), newArgs);
+                break;
+
+            case EWB_CREATE_TABLE :
+                exitCode = ToolRunner.run(new HbaseSplitRegionSetting(), args);
                 break;
 
 
