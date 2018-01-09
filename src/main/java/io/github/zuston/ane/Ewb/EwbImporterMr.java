@@ -44,7 +44,7 @@ public class EwbImporterMr extends Configured implements Tool {
                 return;
             }
             // 时间，运单号，出发地，目的地
-            String rowKeyComponent = String.format("%s#%s#%s#%s",parser.getCREATED_TIME(),parser.getEWB_NO(),parser.getSEND_SITE_ID(),parser.getDISPATCH_SITE_ID());
+            String rowKeyComponent = String.format("%s#%s#%s#%s",parser.getEWB_NO(),parser.getSEND_SITE_ID(),parser.getDISPATCH_SITE_ID(),parser.getCREATED_TIME());
             byte[] rowKey = Bytes.toBytes(rowKeyComponent);
             Put putCondition = new Put(rowKey);
 

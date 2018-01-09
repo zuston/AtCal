@@ -26,7 +26,7 @@ import java.net.URI;
 public class HbaseSplitRegionSetting extends Configured implements Tool{
 
     public static final Logger logger = LoggerFactory.getLogger(HbaseSplitRegionSetting.class);
-    public static final String HDFS_URL = "hdfs://10.10.0.91:9000";
+    public static final String HDFS_URL = "hdfs://10.10.0.91:8020";
     public static int splitNumber = 10;
     public static long sampleKeysNumber;
 

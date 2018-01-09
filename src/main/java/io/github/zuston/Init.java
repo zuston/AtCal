@@ -1,5 +1,6 @@
 package io.github.zuston;
 
+import io.github.zuston.ane.Ewb.BulkLoadTool;
 import io.github.zuston.ane.Ewb.EwbDataSampleCollector;
 import io.github.zuston.ane.Ewb.EwbImporterMr;
 import io.github.zuston.ane.Ewb.HbaseSplitRegionSetting;
@@ -33,6 +34,8 @@ public class Init {
     public static final int EWB_SAMPLE = 10;
     public static final int EWB_CREATE_TABLE = 11;
 
+    public static final int BULKLOAD = 12;
+
     static {
         commandHm.put("order", ORDER_NUMBER);
         commandHm.put("trace", TRACE_NUMBER);
@@ -45,6 +48,7 @@ public class Init {
         commandHm.put("impewb".toLowerCase(), IMPEWB);
         commandHm.put("sampleewb", EWB_SAMPLE);
         commandHm.put("ewbcreatetable", EWB_CREATE_TABLE);
+        commandHm.put("bulkload", BULKLOAD);
     }
 
     public static void main(String[] args) throws Exception {
@@ -98,9 +102,14 @@ public class Init {
                 break;
 
             case EWB_CREATE_TABLE :
-                exitCode = ToolRunner.run(new HbaseSplitRegionSetting(), args);
+                String ars [] = new String[]{args[1],args[2],args[3],args[4]};
+                exitCode = ToolRunner.run(new HbaseSplitRegionSetting(), ars);
                 break;
 
+            case BULKLOAD :
+                String arrs [] = new String[]{args[1],args[2]};
+                exitCode = ToolRunner.run(new BulkLoadTool(), arrs);
+                break;
 
             default:
                 exitCode = 0;
