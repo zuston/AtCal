@@ -49,7 +49,7 @@ public class JobGenerator {
     // hbase mr job
     public static Job HbaseImportJobGnerator(Tool tool, Configuration configuration, String [] args) throws IOException {
         configuration.set("hbase.master", "master:60000");
-        configuration.set("hbase.zookeeper.quorum","slave1,slave2,slave3");
+        configuration.set("hbase.zookeeper.quorum","slave4,slave2,slave3");
         Job job = new Job(configuration);
         job.setJarByClass(tool.getClass());
         FileInputFormat.addInputPath(job, new Path(args[0]));
@@ -64,7 +64,7 @@ public class JobGenerator {
     // bulk load
     public static Job HbaseQuickImportJobGnerator(Tool tool, Configuration configuration, String[] args, HTable table) throws IOException {
         configuration.set("hbase.master", "master:60000");
-        configuration.set("hbase.zookeeper.quorum","slave1,slave2,slave3");
+        configuration.set("hbase.zookeeper.quorum","slave4,slave2,slave3");
         Job job = new Job(configuration);
 
         job.setJarByClass(tool.getClass());

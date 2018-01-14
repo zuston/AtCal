@@ -18,7 +18,7 @@ import java.util.HashMap;
  * Created by zuston on 2017/12/22.
  */
 public class TraceCalculateTimeImporterMr extends Configured implements Tool {
-    // create "AnalysisTraceTime_Out","January","February","March","April","May","June","July","August","September","October","November","December"
+    // create "TraceTime_Out","January","February","March","April","May","June","July","August","September","October","November","December"
     public static final byte[] HS_OPT_TRACE_COLUMN_FAMILY_JAN = Bytes.toBytes("January");
     public static final byte[] HS_OPT_TRACE_COLUMN_FAMILY_FEB = Bytes.toBytes("February");
     public static final byte[] HS_OPT_TRACE_COLUMN_FAMILY_MAR = Bytes.toBytes("March");
@@ -106,7 +106,7 @@ public class TraceCalculateTimeImporterMr extends Configured implements Tool {
     public int run(String[] strings) throws Exception {
         this.getConf().set("hbase.master", "master:60000");
         this.getConf().set("hbase.zookeeper.quorum",
-                "slave1,slave2,slave3");
+                "slave4,slave2,slave3");
 
         Job job = JobGenerator.HbaseImportJobGnerator(this, this.getConf(),strings);
         job.setJobName("TraceTime2Hbase");
