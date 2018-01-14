@@ -9,6 +9,41 @@ import java.util.List;
  */
 public class Test {
     public static void main(String[] args) {
+
+        String text = "3028390940" +
+                "#57999900309779" +
+                "#50" +
+                "#15287" +
+                "#sw0001" +
+                "#赣州分拨中心" +
+                "#20" +
+                "#赣州市" +
+                "#" +
+                "#施令" +
+                "#2017-11-12 17:16:30" +
+                "#" +
+                "#赣州章贡五部" +
+                "#sw20395" +
+                "#" +
+                "#" +
+                "#【赣州市】赣州分拨中心已发出,下一站赣州章贡五部" +
+                "#1" +
+                "#2017-11-14 00:00:00" +
+                "#" +
+                "#赣县" +
+                "#" +
+                "#" +
+                "#0" +
+                "#赣州市" +
+                "#1" +
+                "#";
+
+        String text1 = "南昌市#1##哈哈";
+        System.out.println(text1.split("#").length);
+        for (String v:text1.split("#")){
+            System.out.println(v);
+        }
+        System.exit(1);
 //        TraceRecordParser parser = new TraceRecordParser();
 //        parser.parse("3028390941#59999906490365#20#15371#sw0001#昆山分拨中心#20#苏州市##曹令#2017-11-12 17:16:30######【苏州市】昆山分拨中心已到达#1#2017-11-14 00:00:00##昆山市###0##1#");
 //        System.out.println(parser.getEwb_no());

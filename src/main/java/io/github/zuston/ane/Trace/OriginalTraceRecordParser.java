@@ -35,7 +35,7 @@ public class OriginalTraceRecordParser {
 
     public boolean parser(String record){
         String [] splitArr = record.split("#");
-        if (splitArr.length!=27)    return false;
+        if (splitArr.length!=27 && splitArr.length!=26)    return false;
         TRACE_ID        =  splitArr[0];
         EWB_NO 			=  splitArr[1];
         STEP			=  splitArr[2];
@@ -62,6 +62,10 @@ public class OriginalTraceRecordParser {
         ELECPUSH		=  splitArr[23];
         NEXTCITY		=  splitArr[24];
         DATA_SOURCE		=  splitArr[25];
+        if (splitArr.length == 26) {
+            TASK_NO = "";
+            return true;
+        }
         TASK_NO			=  splitArr[26];
         return true;
     }
