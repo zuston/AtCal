@@ -16,7 +16,7 @@ public class BulkLoadTool extends Configured implements Tool {
 
     public int run(String[] strings) throws IOException {
         this.getConf().set("hbase.master", "master:60000");
-        this.getConf().set("hbase.zookeeper.quorum","slave1,slave2,slave3");
+        this.getConf().set("hbase.zookeeper.quorum","slave4,slave2,slave3");
         HTable hTable = null;
         // tableName
         try {

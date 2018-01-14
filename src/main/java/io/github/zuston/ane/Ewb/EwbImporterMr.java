@@ -26,6 +26,7 @@ enum Error {
     RECORD_ERROR,
     REFLECT_ERROR
 }
+
 public class EwbImporterMr extends Configured implements Tool {
 
     public static Logger logger = LoggerFactory.getLogger(EwbImporterMr.class);
@@ -43,8 +44,8 @@ public class EwbImporterMr extends Configured implements Tool {
                 context.getCounter(Error.RECORD_ERROR).increment(1);
                 return;
             }
-            // 时间，运单号，出发地，目的地
-            String rowKeyComponent = String.format("%s#%s#%s#%s",parser.getEWB_NO(),parser.getSEND_SITE_ID(),parser.getDISPATCH_SITE_ID(),parser.getCREATED_TIME());
+            // 运单号
+            String rowKeyComponent = String.format("%s",parser.getEWB_NO());
             byte[] rowKey = Bytes.toBytes(rowKeyComponent);
             Put putCondition = new Put(rowKey);
 
@@ -70,20 +71,7 @@ public class EwbImporterMr extends Configured implements Tool {
             Job job = JobGenerator.HbaseQuickImportJobGnerator(this, this.getConf(),strings, table);
             job.setJobName("Ewb2Hbase");
             job.setMapperClass(EwbImporterMapper.class);
-//            if (job.waitForCompletion(true)){
-////                FsShell fsShell = new FsShell();
-////                try {
-////                    fsShell.run(new String[]{ "-chmod", "-R", "777", strings[1] });
-////                }catch (Exception e){
-////                    logger.error("the ewb hfile permission error ", e);
-////                    throw new Exception(e);
-////                }
-//                LoadIncrementalHFiles loader = new LoadIncrementalHFiles(this.getConf());
-//                loader.doBulkLoad(new Path(strings[1]), table);
-//            }else {
-//                logger.error("the ewb generate hfile error");
-//                return 0;
-//            }
+
             job.getConfiguration().setStrings("mapreduce.reduce.shuffle.input.buffer.percent", "0.1");
             return job.waitForCompletion(true) ? 1 : 0;
 

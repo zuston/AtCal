@@ -30,7 +30,8 @@ public class EwbDataSampleCollector extends Configured implements Tool {
             // TODO: 2018/1/6 算法更换为鱼塘采样
             if (random.nextInt(50)!=0)  return;
             if (!parser.parser(text.toString()))    return;
-            String rowKeyComponent = String.format("%s#%s#%s#%s",parser.getEWB_NO(),parser.getSEND_SITE_ID(),parser.getDISPATCH_SITE_ID(),parser.getCREATED_TIME());
+//            String rowKeyComponent = String.format("%s#%s#%s#%s",parser.getEWB_NO(),parser.getSEND_SITE_ID(),parser.getDISPATCH_SITE_ID(),parser.getCREATED_TIME());
+            String rowKeyComponent = String.format("%s", parser.getEWB_NO());
             context.write(new Text(rowKeyComponent), new Text(""));
         }
     }

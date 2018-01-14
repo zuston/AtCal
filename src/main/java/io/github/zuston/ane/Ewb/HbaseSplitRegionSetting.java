@@ -22,7 +22,7 @@ import java.net.URI;
  * Created by zuston on 2018/1/6.
  */
 // 依据采样文件进行 hbase region 分区
-//    读取采样文件，按分区数进行划分，直接建表，在导入
+// 读取采样文件，按分区数进行划分，直接建表，在导入
 public class HbaseSplitRegionSetting extends Configured implements Tool{
 
     public static final Logger logger = LoggerFactory.getLogger(HbaseSplitRegionSetting.class);
@@ -62,7 +62,7 @@ public class HbaseSplitRegionSetting extends Configured implements Tool{
     public void createHbaseTable(String tableName, byte [][] splitKeys) throws IOException {
         Configuration config = HBaseConfiguration.create();
         config.set("hbase.master", "master:60000");
-        config.set("hbase.zookeeper.quorum","slave1,slave2,slave3");
+        config.set("hbase.zookeeper.quorum","slave4,slave2,slave3");
         HBaseAdmin admin = new HBaseAdmin(config);
         TableName tname = TableName.valueOf(tableName);
 

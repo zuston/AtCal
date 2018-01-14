@@ -39,7 +39,7 @@ public class Init {
     static {
         commandHm.put("order", ORDER_NUMBER);
         commandHm.put("trace", TRACE_NUMBER);
-        commandHm.put("traceImp".toLowerCase(), TRACE_IMPORT_NUMBER);
+        commandHm.put("tracetimeImp".toLowerCase(), TRACE_IMPORT_NUMBER);
         commandHm.put("site2name".toLowerCase(), SITE_2_NAME);
         commandHm.put("site2nameImp".toLowerCase(), SITE_2_NAME_IMP );
         commandHm.put("traceCompar".toLowerCase(), TRACE_COMPAR);
@@ -68,6 +68,7 @@ public class Init {
                 exitCode = ToolRunner.run(new TraceTimeMr(), opts);
                 break;
 
+            // 分析过后的 trace 时间数据
             case TRACE_IMPORT_NUMBER :
                 exitCode = ToolRunner.run(HBaseConfiguration.create(), new TraceCalculateTimeImporterMr(), newArgs);
                 break;
