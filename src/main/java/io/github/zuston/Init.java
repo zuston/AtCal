@@ -1,5 +1,6 @@
 package io.github.zuston;
 
+import io.github.zuston.ane.Trace.TraceDataSampleCollector;
 import io.github.zuston.ane.Util.BulkLoadTool;
 import io.github.zuston.ane.Ewb.EwbDataSampleCollector;
 import io.github.zuston.ane.Ewb.EwbImporterMr;
@@ -118,7 +119,7 @@ public class Init {
                 break;
 
             case TRACE_SAMPLE :
-                exitCode = ToolRunner.run(new EwbDataSampleCollector(), newArgs);
+                exitCode = ToolRunner.run(new TraceDataSampleCollector(), newArgs);
                 break;
 
             default:
