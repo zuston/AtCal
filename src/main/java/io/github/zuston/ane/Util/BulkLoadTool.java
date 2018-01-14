@@ -1,4 +1,4 @@
-package io.github.zuston.ane.Ewb;
+package io.github.zuston.ane.Util;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FsShell;

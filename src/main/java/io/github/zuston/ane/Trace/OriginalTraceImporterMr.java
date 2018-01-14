@@ -22,7 +22,8 @@ import java.lang.reflect.Field;
 // create "hsOptTrace", "info"
 enum ERROR {
     ORIGINAL_TRACE_RECORD_ERROR,
-    REFLECT_ERROR
+    REFLECT_ERROR,
+    SITE_ID_MISSING
 }
 public class OriginalTraceImporterMr extends Configured implements Tool {
 
@@ -43,12 +44,18 @@ public class OriginalTraceImporterMr extends Configured implements Tool {
                 return;
             }
             // rowkey : siteId#desId#scanTime#ewbNo
-            String rowkeyComponent = String.format("%s:%s:%s:%s",parser.getSITE_ID(),parser.getDEST_SITE_ID(),parser.getSCAN_TIME(),parser.getEWB_NO());
-            byte[] rowKey = Bytes.toBytes(rowkeyComponent);
+//            String rowkeyComponent = String.format("%s:%s:%s:%s",parser.getSITE_ID(),parser.getDEST_SITE_ID(),parser.getSCAN_TIME(),parser.getEWB_NO());
+
+            if (parser.getEWB_NO().equals("") || parser.getSITE_ID().equals(""))  {
+                context.getCounter(ERROR.SITE_ID_MISSING).increment(1);
+                return;
+            }
+            String rowKeyComponent = String.format("%s#%s", parser.getEWB_NO(), parser.getSITE_ID());
+
+            byte[] rowKey = Bytes.toBytes(rowKeyComponent);
             Put condition = new Put(rowKey);
 
             // 待查，是否对性能有巨大影响
-
             for (Field field : fields){
                 try {
                     field.setAccessible(true);
@@ -72,8 +79,7 @@ public class OriginalTraceImporterMr extends Configured implements Tool {
             Job job = JobGenerator.HbaseQuickImportJobGnerator(this, this.getConf(),strings, table);
             job.setJobName("Trace2Hbase");
             job.setMapperClass(TraceImporterMapper.class);
-
-            job.setNumReduceTasks(18);
+            job.getConfiguration().setStrings("mapreduce.reduce.shuffle.input.buffer.percent", "0.1");
 
             return job.waitForCompletion(true) ? 1 : 0;
 

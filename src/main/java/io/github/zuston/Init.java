@@ -1,9 +1,9 @@
 package io.github.zuston;
 
-import io.github.zuston.ane.Ewb.BulkLoadTool;
+import io.github.zuston.ane.Util.BulkLoadTool;
 import io.github.zuston.ane.Ewb.EwbDataSampleCollector;
 import io.github.zuston.ane.Ewb.EwbImporterMr;
-import io.github.zuston.ane.Ewb.HbaseSplitRegionSetting;
+import io.github.zuston.ane.Util.HbaseSplitRegionSetting;
 import io.github.zuston.ane.Trace.OriginalTraceImporterMr;
 import io.github.zuston.ane.TraceTime.*;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -32,23 +32,28 @@ public class Init {
     public static final int IMPEWB = 9;
 
     public static final int EWB_SAMPLE = 10;
-    public static final int EWB_CREATE_TABLE = 11;
+    public static final int CREATE_TABLE = 11;
 
     public static final int BULKLOAD = 12;
+
+    public static final int TRACE_SAMPLE = 13;
 
     static {
         commandHm.put("order", ORDER_NUMBER);
         commandHm.put("trace", TRACE_NUMBER);
-        commandHm.put("tracetimeImp".toLowerCase(), TRACE_IMPORT_NUMBER);
+        commandHm.put("imptracetime".toLowerCase(), TRACE_IMPORT_NUMBER);
         commandHm.put("site2name".toLowerCase(), SITE_2_NAME);
         commandHm.put("site2nameImp".toLowerCase(), SITE_2_NAME_IMP );
         commandHm.put("traceCompar".toLowerCase(), TRACE_COMPAR);
         commandHm.put("filter".toLowerCase(), FILTER);
-        commandHm.put("imptrace".toLowerCase(), IMPTRACE);
+
         commandHm.put("impewb".toLowerCase(), IMPEWB);
         commandHm.put("sampleewb", EWB_SAMPLE);
-        commandHm.put("ewbcreatetable", EWB_CREATE_TABLE);
+        commandHm.put("createtable", CREATE_TABLE);
         commandHm.put("bulkload", BULKLOAD);
+
+        commandHm.put("imptrace".toLowerCase(), IMPTRACE);
+        commandHm.put("sampletrace", TRACE_SAMPLE);
     }
 
     public static void main(String[] args) throws Exception {
@@ -102,7 +107,7 @@ public class Init {
                 exitCode = ToolRunner.run(new EwbDataSampleCollector(), newArgs);
                 break;
 
-            case EWB_CREATE_TABLE :
+            case CREATE_TABLE :
                 String ars [] = new String[]{args[1],args[2],args[3],args[4]};
                 exitCode = ToolRunner.run(new HbaseSplitRegionSetting(), ars);
                 break;
@@ -110,6 +115,10 @@ public class Init {
             case BULKLOAD :
                 String arrs [] = new String[]{args[1],args[2]};
                 exitCode = ToolRunner.run(new BulkLoadTool(), arrs);
+                break;
+
+            case TRACE_SAMPLE :
+                exitCode = ToolRunner.run(new EwbDataSampleCollector(), newArgs);
                 break;
 
             default:

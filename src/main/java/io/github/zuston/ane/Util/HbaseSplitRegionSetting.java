@@ -1,4 +1,4 @@
-package io.github.zuston.ane.Ewb;
+package io.github.zuston.ane.Util;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -75,6 +75,7 @@ public class HbaseSplitRegionSetting extends Configured implements Tool{
             admin.deleteTable(tname);
         }
         HTableDescriptor tableDesc = new HTableDescriptor(tname);
+        // 统一只建一个族，info, 可选
         HColumnDescriptor columnsDesc = new HColumnDescriptor(Bytes.toBytes("info"));
         columnsDesc.setMaxVersions(1);
         tableDesc.addFamily(columnsDesc);
@@ -83,7 +84,16 @@ public class HbaseSplitRegionSetting extends Configured implements Tool{
         admin.close();
     }
 
-
+    /**
+     *
+     * @param strings
+     * @return
+     * @throws Exception
+     * 参数1：分区文件
+     * 参数2：表名
+     * 参数3：分区数目
+     * 参数4：分区表的行数
+     */
     public int run(String[] strings) throws Exception {
         if (strings.length != 4){
             logger.error("HbaseSplitRegionSetting command is error");
