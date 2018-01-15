@@ -157,6 +157,7 @@ public class Init {
         for (int i=1;i<args.length;i++){
             optionList.add(args[i]);
         }
-        return (String[]) optionList.toArray();
+        String[] array = new String[optionList.size()];
+        return optionList.toArray(array);
     }
 }
