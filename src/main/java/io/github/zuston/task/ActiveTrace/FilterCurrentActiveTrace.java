@@ -11,6 +11,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.hash.Hash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +41,9 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
     // default value
     public static int threshold = 7;
 
-    public static HashMap<String, String> name2IdMapper = null;
 
     public static final String mapperPath = "/site2nameMapper-1/part-r-00000";
+
 
     static class FilterMapper extends Mapper<LongWritable, Text, Text, Text>{
 
@@ -70,6 +71,13 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
     static class FilterReducer extends Reducer<Text, Text, Text, Text>{
         private TraceRecordParser parser = new TraceRecordParser();
+
+        private HashMap<String, String> name2idMapper;
+
+        @Override
+        protected void setup(Context context){
+            initMapper(context.getConfiguration(),name2idMapper);
+        }
 
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -100,18 +108,18 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                     String siteId = parser.getSite_id();
                     String destinationName = parser.getDes_site_name();
                     if (siteId != null && destinationName != null){
-                        if (!name2IdMapper.containsKey(destinationName)){
-                            logger.debug("mapper dont exist, destinationName : %s",destinationName);
+                        if (!name2idMapper.containsKey(destinationName)){
+                            logger.debug("mapper dont exist, destinationName : {}",destinationName);
                             continue;
                         }
-                        String destinationId = name2IdMapper.get(destinationName);
+                        String destinationId = name2idMapper.get(destinationName);
                         // tricks, 对应获取预测时间的值, siteID#destination
                         Text keyText = new Text();
                         keyText.set(String.format("%s#%s", siteId, destinationId));
                         context.write(keyText, record);
                     }else{
                         context.getCounter(Counter.DIRTY_DATA_COUNT).increment(1);
-                        logger.info("siteId, destination is null, 订单: %s, 数据: %s",parser.getEwb_no(), record.toString());
+                        logger.info("siteId, destination is null, 订单: {}, 数据: {}",parser.getEwb_no(), record.toString());
                         return;
                     }
                 }
@@ -129,7 +137,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
         }
     }
 
-    public static void initMapper(Configuration config){
+    public static void initMapper(Configuration config, HashMap<String, String> name2IdMapper){
         try {
             List<String> lineList = HdfsTool.readFromHdfs(config, mapperPath);
             name2IdMapper = new HashMap<String, String>();
@@ -141,7 +149,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                 name2IdMapper.put(name, id);
             }
         } catch (IOException e) {
-            logger.error("init site2name error, error : %s", e.getMessage());
+            logger.error("init site2name error, error : {}", e.getMessage());
             System.exit(1);
         }
     }
@@ -159,8 +167,6 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
      * 参数5  上下浮动的日期, default值为 7
      */
     public int run(String[] strings) throws Exception {
-        // 初始化 mapper
-        initMapper(this.getConf());
 
         settingDate = strings[3];
         if (strings.length == 5)    threshold = Integer.parseInt(strings[4]);
@@ -185,6 +191,6 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
         // TODO: 2018/1/15 check 
         settingDate += " 00:00:00";
         settingDateTimestamp = Timestamp.valueOf(settingDate).getTime();
-        logger.info("setting the time : %s, timestamp value : %s", settingDate, settingDateTimestamp);
+        logger.info("setting the time : {}, timestamp value : {}", settingDate, settingDateTimestamp);
     }
 }
