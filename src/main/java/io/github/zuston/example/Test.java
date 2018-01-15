@@ -1,5 +1,6 @@
 package io.github.zuston.example;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -9,6 +10,11 @@ import java.util.List;
  */
 public class Test {
     public static void main(String[] args) {
+
+        String time1 = "2018-08-06 00:00:00";
+        String time2 = "2018-08-07 00:00:00";
+        System.out.println(Timestamp.valueOf(time2).getTime()-Timestamp.valueOf(time1).getTime());
+        System.exit(1);
 
         String text = "3028390940" +
                 "#57999900309779" +

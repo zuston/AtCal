@@ -1,6 +1,6 @@
-package io.github.zuston.ane.Trace;
+package io.github.zuston.basic.Trace;
 
-import io.github.zuston.ane.Util.JobGenerator;
+import io.github.zuston.basic.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;

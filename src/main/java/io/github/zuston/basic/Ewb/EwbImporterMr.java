@@ -1,6 +1,6 @@
-package io.github.zuston.ane.Ewb;
+package io.github.zuston.basic.Ewb;
 
-import io.github.zuston.ane.Util.JobGenerator;
+import io.github.zuston.basic.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;

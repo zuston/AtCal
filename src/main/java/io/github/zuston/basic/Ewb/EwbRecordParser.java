@@ -1,4 +1,4 @@
-package io.github.zuston.ane.Ewb;
+package io.github.zuston.basic.Ewb;
 
 /**
  * Created by zuston on 2017/12/29.

@@ -1,18 +1,22 @@
 package io.github.zuston;
 
-import io.github.zuston.ane.Trace.TraceDataSampleCollector;
-import io.github.zuston.ane.Util.BulkLoadTool;
-import io.github.zuston.ane.Ewb.EwbDataSampleCollector;
-import io.github.zuston.ane.Ewb.EwbImporterMr;
-import io.github.zuston.ane.Util.HbaseSplitRegionSetting;
-import io.github.zuston.ane.Trace.OriginalTraceImporterMr;
-import io.github.zuston.ane.TraceTime.*;
+import io.github.zuston.basic.Trace.TraceDataSampleCollector;
+import io.github.zuston.basic.Util.BulkLoadTool;
+import io.github.zuston.basic.Ewb.EwbDataSampleCollector;
+import io.github.zuston.basic.Ewb.EwbImporterMr;
+import io.github.zuston.basic.Util.HbaseSplitRegionSetting;
+import io.github.zuston.basic.Trace.OriginalTraceImporterMr;
+import io.github.zuston.basic.TraceTime.*;
+import io.github.zuston.task.ActiveTrace.FilterCurrentActiveTrace;
+import io.github.zuston.task.ActiveTrace.Merge2ActiveTrace;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by zuston on 2017/12/18.
@@ -39,6 +43,9 @@ public class Init {
 
     public static final int TRACE_SAMPLE = 13;
 
+    public static final int FILTER_TRACE_OF_TIME = 14;
+    public static final int MERGE_PREDICT_TIME_2_ACTIVE_TRACE = 15;
+
     static {
         commandHm.put("order", ORDER_NUMBER);
         commandHm.put("trace", TRACE_NUMBER);
@@ -55,6 +62,9 @@ public class Init {
 
         commandHm.put("imptrace".toLowerCase(), IMPTRACE);
         commandHm.put("sampletrace", TRACE_SAMPLE);
+
+        commandHm.put("filtertraceoftime".toLowerCase(), FILTER_TRACE_OF_TIME);
+        commandHm.put("merge2activetrace".toLowerCase(), MERGE_PREDICT_TIME_2_ACTIVE_TRACE);
     }
 
     public static void main(String[] args) throws Exception {
@@ -62,6 +72,10 @@ public class Init {
         String commandOption = args[0].toLowerCase();
         String reducerNum = args.length<=3 ? "1" : args[3];
         String [] newArgs =  new String[]{args[1], args[2], reducerNum};
+
+
+
+        String [] options = getOptions(args);
 
         int exitCode;
         switch (commandHm.get(commandOption)){
@@ -122,10 +136,27 @@ public class Init {
                 exitCode = ToolRunner.run(new TraceDataSampleCollector(), newArgs);
                 break;
 
+
+            case FILTER_TRACE_OF_TIME :
+                exitCode = ToolRunner.run(new FilterCurrentActiveTrace(), options);
+                break;
+
+            case MERGE_PREDICT_TIME_2_ACTIVE_TRACE :
+                exitCode = ToolRunner.run(new Merge2ActiveTrace(), options);
+                break;
+
             default:
                 exitCode = 0;
                 break;
         }
         System.exit(exitCode);
+    }
+
+    private static String[] getOptions(String[] args) {
+        List<String> optionList = new ArrayList<String>();
+        for (int i=1;i<args.length;i++){
+            optionList.add(args[i]);
+        }
+        return (String[]) optionList.toArray();
     }
 }

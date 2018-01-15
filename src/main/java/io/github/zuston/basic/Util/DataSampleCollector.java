@@ -1,4 +1,4 @@
-package io.github.zuston.ane.Util;
+package io.github.zuston.basic.Util;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;

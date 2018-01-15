@@ -1,4 +1,4 @@
-package io.github.zuston.ane.Ewb;
+package io.github.zuston.basic.Trace;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -15,27 +15,24 @@ import java.io.IOException;
 import java.util.Random;
 
 /**
- * Created by zuston on 2018/1/5.
+ * Created by zuston on 2018/1/14.
  */
-// 采样算法
-public class EwbDataSampleCollector extends Configured implements Tool {
-    static class SampleMapper extends Mapper<LongWritable, Text, Text, Text>{
+public class TraceDataSampleCollector extends Configured implements Tool {
+    static class SampleMapper extends Mapper<LongWritable, Text, Text, Text> {
 
-        public static EwbRecordParser parser = new EwbRecordParser();
+        public static OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
 
         public static Random random = new Random();
 
         @Override
         public void map(LongWritable longWritable, Text text, Context context) throws IOException, InterruptedException {
-            // TODO: 2018/1/6 算法更换为鱼塘采样
             if (random.nextInt(50)!=0)  return;
             if (!parser.parser(text.toString()))    return;
-//            String rowKeyComponent = String.format("%s#%s#%s#%s",parser.getEWB_NO(),parser.getSEND_SITE_ID(),parser.getDISPATCH_SITE_ID(),parser.getCREATED_TIME());
-            String rowKeyComponent = String.format("%s", parser.getEWB_NO());
+            if (parser.getEWB_NO().equals("") || parser.getSITE_ID().equals(""))    return;
+            String rowKeyComponent = String.format("%s#%s", parser.getEWB_NO(), parser.getSITE_ID());
             context.write(new Text(rowKeyComponent), new Text(""));
         }
     }
-
 
     static class SampleReducer extends Reducer<Text, Text, Text, Text> {
 
@@ -47,12 +44,13 @@ public class EwbDataSampleCollector extends Configured implements Tool {
         }
     }
 
+
     public int run(String[] strings) throws Exception {
         Job job = new Job(this.getConf());
-        job.setJarByClass(EwbDataSampleCollector.class);
-        job.setJobName("ewbDataSampleCollector");
-        job.setMapperClass(SampleMapper.class);
-        job.setReducerClass(SampleReducer.class);
+        job.setJarByClass(TraceDataSampleCollector.class);
+        job.setJobName("traceDataSampleCollector");
+        job.setMapperClass(TraceDataSampleCollector.SampleMapper.class);
+        job.setReducerClass(TraceDataSampleCollector.SampleReducer.class);
 
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);

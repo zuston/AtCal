@@ -1,6 +1,6 @@
-package io.github.zuston.ane.TraceTime;
+package io.github.zuston.basic.TraceTime;
 
-import io.github.zuston.ane.Util.JobGenerator;
+import io.github.zuston.basic.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
