@@ -7,6 +7,7 @@ import org.apache.hadoop.util.ToolRunner;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by zuston on 2018/1/16.
@@ -24,12 +25,14 @@ public class HdfsToolTest extends Configured implements Tool {
         for (String record : lineList){
             String [] splitRecord = record.split("\\s+");
             if (splitRecord.length != 2)    continue;
-            String id = splitRecord[0];
             String name = splitRecord[1];
+            String id = splitRecord[0];
             name2IdMapper.put(name, id);
         }
-        System.out.println(name2IdMapper.size());
-        System.out.println(name2IdMapper.get("开福北辰三角洲分部"));
+
+        for (Map.Entry<String,String> entry : name2IdMapper.entrySet()){
+            System.out.println(entry.getKey() + "-" + entry.getValue());
+        }
         return 0;
     }
 

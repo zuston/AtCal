@@ -19,6 +19,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 enum Counter {
@@ -30,6 +31,7 @@ enum Counter {
     DESTINATION_NAME_NOT_EXIST_COUNT,
 
     FILTERED_DATA_COUNT,
+    MAPPER_LINE_COUNT,
 
     DEBUG_TAG_COUNT,
 }
@@ -91,37 +93,59 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
     static class FilterReducer extends Reducer<Text, Text, Text, Text>{
         private OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
 
-        private HashMap<String, String> name2idMapper = new HashMap<String, String>();
+        private HashMap<String, String> name2idMapper;
 
         private long settingDateTimestamp;
 
         public static final String mapperPath = "/site2nameMapper-1/part-r-00000";
 
         @Override
-        protected void setup(Context context){
-            initMapper(context.getConfiguration(),name2idMapper);
+        protected void setup(Context context) throws IOException, InterruptedException {
+            name2idMapper = initMapper(context.getConfiguration(), context);
             settingDateTimestamp = Long.parseLong(context.getConfiguration().get("settingDateTimestamp"));
-            context.getCounter(Counter.NAME_2_ID_SIZE).setValue(Long.parseLong(name2idMapper.get("梅州分拨中心")));
+            testMapper(context, name2idMapper);
         }
 
-        public void initMapper(Configuration config, HashMap<String, String> name2IdMapper){
+        private void testMapper(Context context, HashMap<String, String> name2idMapper) throws IOException, InterruptedException {
+            for (Map.Entry<String, String> entry : name2idMapper.entrySet()){
+                context.write(new Text(entry.getKey()), new Text(entry.getValue()));
+            }
+        }
+
+
+        public HashMap<String,String> initMapper(Configuration config, Context context){
             try {
+                HashMap<String,String> mapper = new HashMap<String, String>();
                 List<String> lineList = HdfsTool.readFromHdfs(config, mapperPath);
+                context.getCounter(Counter.MAPPER_LINE_COUNT).setValue(lineList.size());
+
                 for (String record : lineList){
                     String [] splitRecord = record.split("\\s+");
                     if (splitRecord.length != 2)    continue;
                     String id = splitRecord[0];
                     String name = splitRecord[1];
-                    name2IdMapper.put(name, id);
+                    mapper.put(name, id);
                 }
+
+                context.getCounter(Counter.NAME_2_ID_SIZE).setValue(mapper.size());
+                return mapper;
+
             } catch (IOException e) {
                 logger.error("init site2name error, error : {}", e.getMessage());
                 System.exit(1);
             }
+            return null;
         }
 
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+
+            if (true){
+                testMapper(context, name2idMapper);
+                return;
+            }
+
+
             // filter 最小 scan_time 大于 current 的情况
             // 解析订单合理性，时间节点是否连贯
             // 判断订单是否已经送达

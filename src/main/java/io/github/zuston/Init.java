@@ -9,6 +9,7 @@ import io.github.zuston.basic.Trace.OriginalTraceImporterMr;
 import io.github.zuston.basic.TraceTime.*;
 import io.github.zuston.task.ActiveTrace.FilterCurrentActiveTrace;
 import io.github.zuston.task.ActiveTrace.Merge2ActiveTrace;
+import io.github.zuston.test.HdfsToolTest;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
@@ -46,6 +47,8 @@ public class Init {
     public static final int FILTER_TRACE_OF_TIME = 14;
     public static final int MERGE_PREDICT_TIME_2_ACTIVE_TRACE = 15;
 
+    public static final int HDFS_TEST = 16;
+
     static {
         commandHm.put("order", ORDER_NUMBER);
         commandHm.put("trace", TRACE_NUMBER);
@@ -65,6 +68,8 @@ public class Init {
 
         commandHm.put("filtertraceoftime".toLowerCase(), FILTER_TRACE_OF_TIME);
         commandHm.put("merge2activetrace".toLowerCase(), MERGE_PREDICT_TIME_2_ACTIVE_TRACE);
+
+        commandHm.put("hdfstest".toLowerCase(), HDFS_TEST);
     }
 
     public static void main(String[] args) throws Exception {
@@ -143,6 +148,11 @@ public class Init {
 
             case MERGE_PREDICT_TIME_2_ACTIVE_TRACE :
                 exitCode = ToolRunner.run(new Merge2ActiveTrace(), options);
+                break;
+
+
+            case HDFS_TEST :
+                exitCode = ToolRunner.run(new HdfsToolTest(), options);
                 break;
 
             default:
