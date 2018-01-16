@@ -1,6 +1,6 @@
 package io.github.zuston.task.ActiveTrace;
 
-import io.github.zuston.basic.TraceTime.TraceRecordParser;
+import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import io.github.zuston.basic.Util.HdfsTool;
 import io.github.zuston.basic.Util.JobGenerator;
 import org.apache.hadoop.conf.Configuration;
@@ -11,7 +11,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.hash.Hash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +25,8 @@ enum Counter {
     GET_RECORD_COUNT,
     HAVE_ARRIVED_RECORD_COUNT,
     SCAN_TIME_LATER_COUNT,
-    DIRTY_DATA_COUNT
+    DIRTY_DATA_COUNT,
+    NAME_2_ID_SIZE
 }
 
 /**
@@ -34,6 +34,7 @@ enum Counter {
  */
 public class FilterCurrentActiveTrace extends Configured implements Tool{
     public static Logger logger = LoggerFactory.getLogger(FilterCurrentActiveTrace.class);
+
     // 指定的当前日期。
     // for example : 12-08 11-23
     public static String settingDate;
@@ -47,21 +48,22 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
     static class FilterMapper extends Mapper<LongWritable, Text, Text, Text>{
 
-        private TraceRecordParser parser = new TraceRecordParser();
+        private OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
         @Override
         public void map(LongWritable key, Text text, Context context) throws IOException, InterruptedException {
-            if (!parser.parse(text.toString())) return;
-            String scan_time = parser.getScan_time();
+            if (!parser.parser(text.toString())) return;
+            String scan_time = parser.getSCAN_TIME();
             long timestamp = Timestamp.valueOf(scan_time).getTime();
+            logger.info("currentTimestamp : "+timestamp);
             if (!activeTraceFilter(timestamp))   return;
-            String ewbNo = parser.getEwb_no();
+            String ewbNo = parser.getEWB_NO();
             context.getCounter(Counter.GET_RECORD_COUNT).increment(1);
             context.write(new Text(ewbNo), text);
         }
 
         private boolean activeTraceFilter(long timestamp) {
             long thresholdSeconds = threshold * 24 * 60 * 60;
-            long minplusV = Math.abs(settingDateTimestamp-timestamp) / 1000;
+            long minplusV = Math.abs(settingDateTimestamp - timestamp) / 1000;
             if (minplusV > thresholdSeconds)    return false;
             return true;
         }
@@ -70,13 +72,31 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
 
     static class FilterReducer extends Reducer<Text, Text, Text, Text>{
-        private TraceRecordParser parser = new TraceRecordParser();
+        private OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
 
-        private HashMap<String, String> name2idMapper;
+        private HashMap<String, String> name2idMapper = new HashMap<String, String>();
 
         @Override
         protected void setup(Context context){
             initMapper(context.getConfiguration(),name2idMapper);
+            logger.warn("the mapper size is {}", name2idMapper.size());
+            context.getCounter(Counter.NAME_2_ID_SIZE).setValue(name2idMapper.size());
+        }
+
+        public void initMapper(Configuration config, HashMap<String, String> name2IdMapper){
+            try {
+                List<String> lineList = HdfsTool.readFromHdfs(config, mapperPath);
+                for (String record : lineList){
+                    String [] splitRecord = record.split("\\s+");
+                    if (splitRecord.length != 2)    return;
+                    String id = splitRecord[0];
+                    String name = splitRecord[1];
+                    name2IdMapper.put(name, id);
+                }
+            } catch (IOException e) {
+                logger.error("init site2name error, error : {}", e.getMessage());
+                System.exit(1);
+            }
         }
 
         @Override
@@ -88,8 +108,8 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             long minScanTime = Long.MAX_VALUE;
             long maxScanTime = Long.MIN_VALUE;
             for (Text record : values){
-                parser.parse(record.toString());
-                long scanTime = Timestamp.valueOf(parser.getScan_time()).getTime();
+                parser.parser(record.toString());
+                long scanTime = Timestamp.valueOf(parser.getSCAN_TIME()).getTime();
                 minScanTime = minScanTime > scanTime ? scanTime : minScanTime;
                 maxScanTime = maxScanTime > scanTime ? maxScanTime : scanTime;
                 recordList.add(record);
@@ -98,16 +118,16 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             if (minScanTime < (settingDateTimestamp+86400000) &&
                     maxScanTime > settingDateTimestamp){
                 for (Text record : recordList){
-                    parser.parse(record.toString());
-                    if (Timestamp.valueOf(parser.getScan_time()).getTime()==maxScanTime){
-                        String desp = parser.getDesp();
+                    parser.parser(record.toString());
+                    if (Timestamp.valueOf(parser.getSCAN_TIME()).getTime()==maxScanTime){
+                        String desp = parser.getDESCPT();
                         if (checkHaveArrived(desp)){
                             context.getCounter(Counter.HAVE_ARRIVED_RECORD_COUNT).increment(1);
                         }
                     }
-                    String siteId = parser.getSite_id();
-                    String destinationName = parser.getDes_site_name();
-                    if (siteId != null && destinationName != null){
+                    String siteId = parser.getSITE_ID();
+                    String destinationName = parser.getDEST_SITE_NAME();
+                    if (siteId != null && destinationName != null && !destinationName.equals("")){
                         if (!name2idMapper.containsKey(destinationName)){
                             logger.debug("mapper dont exist, destinationName : {}",destinationName);
                             continue;
@@ -119,7 +139,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                         context.write(keyText, record);
                     }else{
                         context.getCounter(Counter.DIRTY_DATA_COUNT).increment(1);
-                        logger.info("siteId, destination is null, 订单: {}, 数据: {}",parser.getEwb_no(), record.toString());
+                        logger.info("siteId, destination is null, 订单: {}, 数据: {}",parser.getEWB_NO(), record.toString());
                         return;
                     }
                 }
@@ -127,8 +147,6 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                 context.getCounter(Counter.SCAN_TIME_LATER_COUNT).increment(1);
                 return;
             }
-
-
         }
 
         private boolean checkHaveArrived(String desp) {
@@ -137,22 +155,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
         }
     }
 
-    public static void initMapper(Configuration config, HashMap<String, String> name2IdMapper){
-        try {
-            List<String> lineList = HdfsTool.readFromHdfs(config, mapperPath);
-            name2IdMapper = new HashMap<String, String>();
-            for (String record : lineList){
-                String [] splitRecord = record.split("\\s+");
-                if (splitRecord.length != 2)    return;
-                String id = splitRecord[0];
-                String name = splitRecord[1];
-                name2IdMapper.put(name, id);
-            }
-        } catch (IOException e) {
-            logger.error("init site2name error, error : {}", e.getMessage());
-            System.exit(1);
-        }
-    }
+
 
     /**
      *
