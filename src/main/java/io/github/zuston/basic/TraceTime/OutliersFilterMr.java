@@ -34,7 +34,7 @@ public class OutliersFilterMr extends Configured implements Tool{
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String[] record = value.toString().split("\\s+");
-            context.getCounter(Counter.BEFORE_FILTER_ORDER_COUNT).increment(1);
+//            context.getCounter(Counter.BEFORE_FILTER_ORDER_COUNT).increment(1);
             context.write(new FilterPair(record[0],"0"),new Text(record[1]));
         }
     }
@@ -42,7 +42,7 @@ public class OutliersFilterMr extends Configured implements Tool{
     static class OriginalDateMapper extends Mapper<LongWritable, Text, FilterPair, Text>{
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            context.getCounter(Counter.BEFORE_FILTER_ORDER_COUNT).increment(1);
+//            context.getCounter(Counter.BEFORE_FILTER_ORDER_COUNT).increment(1);
             String[] record = value.toString().split("\\s+");
             context.write(new FilterPair(record[0],"1"),new Text(record[1]));
         }
@@ -73,7 +73,7 @@ public class OutliersFilterMr extends Configured implements Tool{
             Text baseLine = iterator.next();
             String bl [] = baseLine.toString().split(":");
             if (bl.length!=3 || bl[0].equals("") || bl[1].equals("")){
-                context.getCounter(Counter.BASELINE_ERROR).increment(1);
+//                context.getCounter(Counter.BASELINE_ERROR).increment(1);
                 return;
             }
             double baseLineAvg = Double.parseDouble(bl[0]);
@@ -86,7 +86,7 @@ public class OutliersFilterMr extends Configured implements Tool{
                 if (record.toString().equals(""))   continue;
                 long value = Long.parseLong(record.toString());
                 if (Math.abs(value-baseLineAvg) > baseLineValue*baseLineStandardDeviation){
-                    context.getCounter(Counter.ABSORT_COUNT).increment(1);
+//                    context.getCounter(Counter.ABSORT_COUNT).increment(1);
                     continue;
                 }
                 context.write(key.getFirst(),record);

@@ -1,5 +1,7 @@
 package io.github.zuston.example;
 
+import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
+
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,6 +12,16 @@ import java.util.List;
  */
 public class Test {
     public static void main(String[] args) {
+
+        OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
+        String line = "15447#520723\t3029634580#30000030146671#70#15447#9931201#兰州分拨中心#20#兰州市#348866#苟茂校#2017-11-14 00:14:58##兰州城关九部#9311006###【兰州市】兰州分拨中心已发出,下一站兰州城关九部##2017-11-14 00:33:02##七里河区#5.72##0#兰州市#1#";
+
+        parser.parser(line.split("\\t+")[1]);
+        String scanTime = parser.getSCAN_TIME();
+        String [] arr = scanTime.split("\\s+")[0].split("-");
+        String frontSuffix = arr[0]+"-"+arr[1];
+        System.out.println(frontSuffix);
+        System.exit(1);
 
         String time1 = "2018-08-06 00:00:00";
         String time2 = "2018-08-07 00:00:00";
