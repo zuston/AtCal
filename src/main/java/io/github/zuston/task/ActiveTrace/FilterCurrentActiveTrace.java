@@ -26,7 +26,9 @@ enum Counter {
     HAVE_ARRIVED_RECORD_COUNT,
     SCAN_TIME_LATER_COUNT,
     DIRTY_DATA_COUNT,
-    NAME_2_ID_SIZE
+    NAME_2_ID_SIZE,
+    DEBUG_TAG_COUNT,
+    DEBUG_LAST_TIMESTAMP_VALUE
 }
 
 /**
@@ -55,7 +57,11 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             String scan_time = parser.getSCAN_TIME();
             long timestamp = Timestamp.valueOf(scan_time).getTime();
             logger.info("currentTimestamp : "+timestamp);
-            if (!activeTraceFilter(timestamp))   return;
+            if (!activeTraceFilter(timestamp))   {
+                context.getCounter(Counter.DEBUG_LAST_TIMESTAMP_VALUE).setValue(timestamp);
+                context.getCounter(Counter.DEBUG_TAG_COUNT).increment(1);
+                return;
+            }
             String ewbNo = parser.getEWB_NO();
             context.getCounter(Counter.GET_RECORD_COUNT).increment(1);
             context.write(new Text(ewbNo), text);
