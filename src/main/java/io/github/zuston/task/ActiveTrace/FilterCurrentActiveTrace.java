@@ -27,8 +27,11 @@ enum Counter {
     SCAN_TIME_LATER_COUNT,
     DIRTY_DATA_COUNT,
     NAME_2_ID_SIZE,
+    DESTINATION_NAME_NOT_EXIST_COUNT,
+
+    FILTERED_DATA_COUNT,
+
     DEBUG_TAG_COUNT,
-    DEBUG_LAST_TIMESTAMP_VALUE
 }
 
 /**
@@ -51,14 +54,23 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
     static class FilterMapper extends Mapper<LongWritable, Text, Text, Text>{
 
         private OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
+
+        private long settingDateTimestamp;
+        private int threshold;
+
+        @Override
+        protected void setup(Context context) {
+            settingDateTimestamp = Long.parseLong(context.getConfiguration().get("settingDateTimestamp"));
+            threshold = Integer.parseInt(context.getConfiguration().get("threshold"));
+        }
+
+
         @Override
         public void map(LongWritable key, Text text, Context context) throws IOException, InterruptedException {
             if (!parser.parser(text.toString())) return;
             String scan_time = parser.getSCAN_TIME();
             long timestamp = Timestamp.valueOf(scan_time).getTime();
-            logger.info("currentTimestamp : "+timestamp);
             if (!activeTraceFilter(timestamp))   {
-                context.getCounter(Counter.DEBUG_LAST_TIMESTAMP_VALUE).setValue(timestamp);
                 context.getCounter(Counter.DEBUG_TAG_COUNT).increment(1);
                 return;
             }
@@ -76,17 +88,20 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
     }
 
 
-
     static class FilterReducer extends Reducer<Text, Text, Text, Text>{
         private OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
 
         private HashMap<String, String> name2idMapper = new HashMap<String, String>();
 
+        private long settingDateTimestamp;
+
+        public static final String mapperPath = "/site2nameMapper-1/part-r-00000";
+
         @Override
         protected void setup(Context context){
             initMapper(context.getConfiguration(),name2idMapper);
-            logger.warn("the mapper size is {}", name2idMapper.size());
-            context.getCounter(Counter.NAME_2_ID_SIZE).setValue(name2idMapper.size());
+            settingDateTimestamp = Long.parseLong(context.getConfiguration().get("settingDateTimestamp"));
+            context.getCounter(Counter.NAME_2_ID_SIZE).setValue(Long.parseLong(name2idMapper.get("梅州分拨中心")));
         }
 
         public void initMapper(Configuration config, HashMap<String, String> name2IdMapper){
@@ -94,7 +109,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                 List<String> lineList = HdfsTool.readFromHdfs(config, mapperPath);
                 for (String record : lineList){
                     String [] splitRecord = record.split("\\s+");
-                    if (splitRecord.length != 2)    return;
+                    if (splitRecord.length != 2)    continue;
                     String id = splitRecord[0];
                     String name = splitRecord[1];
                     name2IdMapper.put(name, id);
@@ -135,13 +150,15 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                     String destinationName = parser.getDEST_SITE_NAME();
                     if (siteId != null && destinationName != null && !destinationName.equals("")){
                         if (!name2idMapper.containsKey(destinationName)){
+                            context.getCounter(Counter.DESTINATION_NAME_NOT_EXIST_COUNT).increment(1);
                             logger.debug("mapper dont exist, destinationName : {}",destinationName);
                             continue;
                         }
                         String destinationId = name2idMapper.get(destinationName);
+                        context.getCounter(Counter.FILTERED_DATA_COUNT).increment(1);
                         // tricks, 对应获取预测时间的值, siteID#destination
                         Text keyText = new Text();
-                        keyText.set(String.format("%s#%s", siteId, destinationId));
+                        keyText.set(String.format("%s#%s",siteId, destinationId));
                         context.write(keyText, record);
                     }else{
                         context.getCounter(Counter.DIRTY_DATA_COUNT).increment(1);
@@ -182,6 +199,8 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
         
         checkDate(settingDate);
 
+        this.getConf().set("settingDateTimestamp", String.valueOf(settingDateTimestamp));
+        this.getConf().set("threshold", String.valueOf(threshold));
 
         Job job = JobGenerator.SimpleJobGenerator(this, this.getConf(), strings);
         job.setJarByClass(FilterCurrentActiveTrace.class);
@@ -189,11 +208,11 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
         job.setMapperClass(FilterMapper.class);
         job.setReducerClass(FilterReducer.class);
 
+
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
         return job.waitForCompletion(true) ? 0 : 1;
-
     }
 
     private void checkDate(String settingDate) {

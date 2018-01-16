@@ -7,7 +7,9 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,16 +26,21 @@ public class HdfsTool {
     public static List<String> readFromHdfs(Configuration configuration, String path) throws IOException {
         String dst = HDFS_URL + path;
         FileSystem fs = FileSystem.get(URI.create(dst), configuration);
+
         FSDataInputStream hdfsInStream = fs.open(new Path(dst));
+        // 防止中文乱码
+        BufferedReader bf=new BufferedReader(new InputStreamReader(hdfsInStream));
+
 
         String record = null;
         List<String> lineList = new ArrayList<String>();
-        while ((record=hdfsInStream.readLine())!=null){
+        while ((record=bf.readLine())!=null){
             lineList.add(record);
         }
-
+        bf.close();
         hdfsInStream.close();
-        fs.close();
+        // 关闭 fs 导致 context.write 的时候 nio 已经响应关闭
+//        fs.close();
         return lineList;
     }
 }
