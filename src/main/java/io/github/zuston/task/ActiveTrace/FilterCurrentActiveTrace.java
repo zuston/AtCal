@@ -101,9 +101,16 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
-            name2idMapper = initMapper(context.getConfiguration(), context);
+            if (name2idMapper==null){
+                name2idMapper = initMapper(context.getConfiguration(), context);
+//                context.getCounter("debug",name2idMapper.toString()).increment(1);
+            }
             settingDateTimestamp = Long.parseLong(context.getConfiguration().get("settingDateTimestamp"));
-            testMapper(context, name2idMapper);
+        }
+
+        @Override
+        protected void cleanup(Context context){
+            name2idMapper = null;
         }
 
         private void testMapper(Context context, HashMap<String, String> name2idMapper) throws IOException, InterruptedException {
@@ -120,7 +127,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                 context.getCounter(Counter.MAPPER_LINE_COUNT).setValue(lineList.size());
 
                 for (String record : lineList){
-                    String [] splitRecord = record.split("\\s+");
+                    String [] splitRecord = record.trim().split("\\s+");
                     if (splitRecord.length != 2)    continue;
                     String id = splitRecord[0];
                     String name = splitRecord[1];
@@ -139,12 +146,6 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-
-            if (true){
-                testMapper(context, name2idMapper);
-                return;
-            }
-
 
             // filter 最小 scan_time 大于 current 的情况
             // 解析订单合理性，时间节点是否连贯
@@ -237,6 +238,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
         job.setOutputValueClass(Text.class);
 
         return job.waitForCompletion(true) ? 0 : 1;
+
     }
 
     private void checkDate(String settingDate) {

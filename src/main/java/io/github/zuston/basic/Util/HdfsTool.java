@@ -29,7 +29,8 @@ public class HdfsTool {
 
         FSDataInputStream hdfsInStream = fs.open(new Path(dst));
         // 防止中文乱码
-        BufferedReader bf=new BufferedReader(new InputStreamReader(hdfsInStream));
+        // 简直傻逼，ubuntu下默认编码不是 utf-8，但是 mac 下就是 默认编码。我擦擦擦啊
+        BufferedReader bf=new BufferedReader(new InputStreamReader(hdfsInStream, "UTF-8"));
 
 
         String record = null;
@@ -42,5 +43,9 @@ public class HdfsTool {
         // 关闭 fs 导致 context.write 的时候 nio 已经响应关闭
 //        fs.close();
         return lineList;
+    }
+
+    public static List<String> readFromLocal(){
+        return null;
     }
 }

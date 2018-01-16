@@ -33,6 +33,8 @@ public class HdfsToolTest extends Configured implements Tool {
         for (Map.Entry<String,String> entry : name2IdMapper.entrySet()){
             System.out.println(entry.getKey() + "-" + entry.getValue());
         }
+
+        System.out.println(name2IdMapper.toString());
         return 0;
     }
 
