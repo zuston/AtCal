@@ -16,10 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 enum Counter {
@@ -50,8 +47,6 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
     public static int threshold = 7;
 
 
-    public static final String mapperPath = "/site2nameMapper-1/part-r-00000";
-
 
     static class FilterMapper extends Mapper<LongWritable, Text, Text, Text>{
 
@@ -68,8 +63,8 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
 
         @Override
-        public void map(LongWritable key, Text text, Context context) throws IOException, InterruptedException {
-            if (!parser.parser(text.toString())) return;
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            if (!parser.parser(value.toString())) return;
             String scan_time = parser.getSCAN_TIME();
             long timestamp = Timestamp.valueOf(scan_time).getTime();
             if (!activeTraceFilter(timestamp))   {
@@ -78,7 +73,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             }
             String ewbNo = parser.getEWB_NO();
             context.getCounter(Counter.GET_RECORD_COUNT).increment(1);
-            context.write(new Text(ewbNo), text);
+            context.write(new Text(ewbNo), value);
         }
 
         private boolean activeTraceFilter(long timestamp) {
@@ -113,18 +108,12 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             name2idMapper = null;
         }
 
-        private void testMapper(Context context, HashMap<String, String> name2idMapper) throws IOException, InterruptedException {
-            for (Map.Entry<String, String> entry : name2idMapper.entrySet()){
-                context.write(new Text(entry.getKey()), new Text(entry.getValue()));
-            }
-        }
-
 
         public HashMap<String,String> initMapper(Configuration config, Context context){
             try {
                 HashMap<String,String> mapper = new HashMap<String, String>();
                 List<String> lineList = HdfsTool.readFromHdfs(config, mapperPath);
-                context.getCounter(Counter.MAPPER_LINE_COUNT).setValue(lineList.size());
+//                context.getCounter(Counter.MAPPER_LINE_COUNT).setValue(lineList.size());
 
                 for (String record : lineList){
                     String [] splitRecord = record.trim().split("\\s+");
@@ -134,7 +123,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                     mapper.put(name, id);
                 }
 
-                context.getCounter(Counter.NAME_2_ID_SIZE).setValue(mapper.size());
+//                context.getCounter(Counter.NAME_2_ID_SIZE).setValue(mapper.size());
                 return mapper;
 
             } catch (IOException e) {
@@ -150,16 +139,26 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             // filter 最小 scan_time 大于 current 的情况
             // 解析订单合理性，时间节点是否连贯
             // 判断订单是否已经送达
-            List<Text> recordList = new ArrayList<Text>();
+            Set<Text> recordList = new HashSet<Text>();
             long minScanTime = Long.MAX_VALUE;
             long maxScanTime = Long.MIN_VALUE;
-            for (Text record : values){
+
+            Iterator<Text> iterator = values.iterator();
+            while (iterator.hasNext()){
+                Text record = iterator.next();
                 parser.parser(record.toString());
                 long scanTime = Timestamp.valueOf(parser.getSCAN_TIME()).getTime();
                 minScanTime = minScanTime > scanTime ? scanTime : minScanTime;
                 maxScanTime = maxScanTime > scanTime ? maxScanTime : scanTime;
                 recordList.add(record);
             }
+//            for (Text record : values){
+//                parser.parser(record.toString());
+//                long scanTime = Timestamp.valueOf(parser.getSCAN_TIME()).getTime();
+//                minScanTime = minScanTime > scanTime ? scanTime : minScanTime;
+//                maxScanTime = maxScanTime > scanTime ? maxScanTime : scanTime;
+//                recordList.add(record);
+//            }
             // 不在设置时间的区间内，剔除
             if (minScanTime < (settingDateTimestamp+86400000) &&
                     maxScanTime > settingDateTimestamp){
@@ -229,6 +228,9 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
         Job job = JobGenerator.SimpleJobGenerator(this, this.getConf(), strings);
         job.setJarByClass(FilterCurrentActiveTrace.class);
+
+        job.setMapOutputValueClass(Text.class);
+        job.setMapOutputKeyClass(Text.class);
 
         job.setMapperClass(FilterMapper.class);
         job.setReducerClass(FilterReducer.class);

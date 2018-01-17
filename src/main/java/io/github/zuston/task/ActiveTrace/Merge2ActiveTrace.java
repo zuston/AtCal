@@ -23,7 +23,10 @@ import java.util.Iterator;
 
 
 enum COUNTER {
-    MERGE_ERROR
+    MERGE_ERROR,
+
+    NONE_DISTINCTED_ACTIVE_RECORD_COUNT,
+    DISTINCTED_ACTIVE_RECORD_COUNT
 }
 
 /**

@@ -1,12 +1,13 @@
 package io.github.zuston;
 
-import io.github.zuston.basic.Trace.TraceDataSampleCollector;
-import io.github.zuston.basic.Util.BulkLoadTool;
 import io.github.zuston.basic.Ewb.EwbDataSampleCollector;
 import io.github.zuston.basic.Ewb.EwbImporterMr;
-import io.github.zuston.basic.Util.HbaseSplitRegionSetting;
 import io.github.zuston.basic.Trace.OriginalTraceImporterMr;
+import io.github.zuston.basic.Trace.TraceDataSampleCollector;
 import io.github.zuston.basic.TraceTime.*;
+import io.github.zuston.basic.Util.BulkLoadTool;
+import io.github.zuston.basic.Util.HbaseSplitRegionSetting;
+import io.github.zuston.task.ActiveTrace.DistinctActiveTrace;
 import io.github.zuston.task.ActiveTrace.FilterCurrentActiveTrace;
 import io.github.zuston.task.ActiveTrace.Merge2ActiveTrace;
 import io.github.zuston.test.HdfsToolTest;
@@ -45,7 +46,9 @@ public class Init {
     public static final int TRACE_SAMPLE = 13;
 
     public static final int FILTER_TRACE_OF_TIME = 14;
+    public static final int DISTINCT_ACTIVE_TRACE = 17;
     public static final int MERGE_PREDICT_TIME_2_ACTIVE_TRACE = 15;
+
 
     public static final int HDFS_TEST = 16;
 
@@ -67,6 +70,7 @@ public class Init {
         commandHm.put("sampletrace", TRACE_SAMPLE);
 
         commandHm.put("filtertraceoftime".toLowerCase(), FILTER_TRACE_OF_TIME);
+        commandHm.put("distincttrace".toLowerCase(), DISTINCT_ACTIVE_TRACE);
         commandHm.put("merge2activetrace".toLowerCase(), MERGE_PREDICT_TIME_2_ACTIVE_TRACE);
 
         commandHm.put("hdfstest".toLowerCase(), HDFS_TEST);
@@ -144,6 +148,10 @@ public class Init {
 
             case FILTER_TRACE_OF_TIME :
                 exitCode = ToolRunner.run(new FilterCurrentActiveTrace(), options);
+                break;
+
+            case DISTINCT_ACTIVE_TRACE :
+                exitCode = ToolRunner.run(new DistinctActiveTrace(), options);
                 break;
 
             case MERGE_PREDICT_TIME_2_ACTIVE_TRACE :
