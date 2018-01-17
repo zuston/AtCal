@@ -1,4 +1,4 @@
-package io.github.zuston.basic.Util;
+package io.github.zuston.Util;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FsShell;

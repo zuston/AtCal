@@ -1,12 +1,13 @@
 package io.github.zuston;
 
+import io.github.zuston.Util.HbaseTool;
 import io.github.zuston.basic.Ewb.EwbDataSampleCollector;
 import io.github.zuston.basic.Ewb.EwbImporterMr;
 import io.github.zuston.basic.Trace.OriginalTraceImporterMr;
 import io.github.zuston.basic.Trace.TraceDataSampleCollector;
 import io.github.zuston.basic.TraceTime.*;
-import io.github.zuston.basic.Util.BulkLoadTool;
-import io.github.zuston.basic.Util.HbaseSplitRegionSetting;
+import io.github.zuston.Util.BulkLoadTool;
+import io.github.zuston.task.ActiveTrace.ActiveTrace2Hbase;
 import io.github.zuston.task.ActiveTrace.DistinctActiveTrace;
 import io.github.zuston.task.ActiveTrace.FilterCurrentActiveTrace;
 import io.github.zuston.task.ActiveTrace.Merge2ActiveTrace;
@@ -48,6 +49,7 @@ public class Init {
     public static final int FILTER_TRACE_OF_TIME = 14;
     public static final int DISTINCT_ACTIVE_TRACE = 17;
     public static final int MERGE_PREDICT_TIME_2_ACTIVE_TRACE = 15;
+    public static final int AT2HBAE = 18;
 
 
     public static final int HDFS_TEST = 16;
@@ -72,6 +74,7 @@ public class Init {
         commandHm.put("filtertraceoftime".toLowerCase(), FILTER_TRACE_OF_TIME);
         commandHm.put("distincttrace".toLowerCase(), DISTINCT_ACTIVE_TRACE);
         commandHm.put("merge2activetrace".toLowerCase(), MERGE_PREDICT_TIME_2_ACTIVE_TRACE);
+        commandHm.put("at2hbase".toLowerCase(), AT2HBAE);
 
         commandHm.put("hdfstest".toLowerCase(), HDFS_TEST);
     }
@@ -133,7 +136,7 @@ public class Init {
 
             case CREATE_TABLE :
                 String ars [] = new String[]{args[1],args[2],args[3],args[4]};
-                exitCode = ToolRunner.run(new HbaseSplitRegionSetting(), ars);
+                exitCode = ToolRunner.run(new HbaseTool(), ars);
                 break;
 
             case BULKLOAD :
@@ -158,10 +161,14 @@ public class Init {
                 exitCode = ToolRunner.run(new Merge2ActiveTrace(), options);
                 break;
 
+            case  AT2HBAE :
+                exitCode = ToolRunner.run(new ActiveTrace2Hbase(), options);
+                break;
 
             case HDFS_TEST :
                 exitCode = ToolRunner.run(new HdfsToolTest(), options);
                 break;
+
 
             default:
                 exitCode = 0;

@@ -1,4 +1,4 @@
-package io.github.zuston.basic.Util;
+package io.github.zuston.Util;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -23,9 +23,9 @@ import java.net.URI;
  */
 // 依据采样文件进行 hbase region 分区
 // 读取采样文件，按分区数进行划分，直接建表，在导入
-public class HbaseSplitRegionSetting extends Configured implements Tool{
+public class HbaseTool extends Configured implements Tool{
 
-    public static final Logger logger = LoggerFactory.getLogger(HbaseSplitRegionSetting.class);
+    public static final Logger logger = LoggerFactory.getLogger(HbaseTool.class);
     public static final String HDFS_URL = "hdfs://10.10.0.91:8020";
     public static int splitNumber = 10;
     public static long sampleKeysNumber;
@@ -79,9 +79,16 @@ public class HbaseSplitRegionSetting extends Configured implements Tool{
         HColumnDescriptor columnsDesc = new HColumnDescriptor(Bytes.toBytes("info"));
         columnsDesc.setMaxVersions(1);
         tableDesc.addFamily(columnsDesc);
-
-        admin.createTable(tableDesc, splitKeys);
+        if (splitKeys==null){
+            admin.createTable(tableDesc);
+        }else {
+            admin.createTable(tableDesc, splitKeys);
+        }
         admin.close();
+    }
+
+    public void createHbaseTable(String tableName) throws IOException {
+        this.createHbaseTable(tableName, null);
     }
 
     /**
@@ -96,7 +103,7 @@ public class HbaseSplitRegionSetting extends Configured implements Tool{
      */
     public int run(String[] strings) throws Exception {
         if (strings.length != 4){
-            logger.error("HbaseSplitRegionSetting command is error");
+            logger.error("HbaseTool command is error");
             System.exit(1);
         }
         // set the splitNumber

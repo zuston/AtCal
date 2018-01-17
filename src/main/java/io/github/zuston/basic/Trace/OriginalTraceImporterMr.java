@@ -1,6 +1,6 @@
 package io.github.zuston.basic.Trace;
 
-import io.github.zuston.basic.Util.JobGenerator;
+import io.github.zuston.Util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
@@ -19,7 +19,6 @@ import java.lang.reflect.Field;
  * Created by zuston on 2018/1/4.
  */
 
-// create "hsOptTrace", "info"
 enum ERROR {
     ORIGINAL_TRACE_RECORD_ERROR,
     REFLECT_ERROR,
