@@ -132,6 +132,8 @@ public class Validate extends Configured implements Tool {
         Job validateJob = JobGenerator.SimpleJobGenerator(this, this.getConf(), validateOptions);
         validateJob.setJarByClass(Validate.class);
         validateJob.setMapperClass(ValidateMapper.class);
+        validateJob.setMapOutputValueClass(Text.class);
+        validateJob.setMapOutputKeyClass(Text.class);
         validateJob.setReducerClass(ValidateReducer.class);
         validateJob.setOutputKeyClass(Text.class);
         validateJob.setOutputValueClass(IntWritable.class);
@@ -140,6 +142,8 @@ public class Validate extends Configured implements Tool {
             Job mergeJob = JobGenerator.SimpleJobGenerator(this, this.getConf(), mergeOptions);
             mergeJob.setJarByClass(Validate.class);
             mergeJob.setMapperClass(MergeMapper.class);
+            mergeJob.setMapOutputKeyClass(Text.class);
+            mergeJob.setMapOutputValueClass(IntWritable.class);
             mergeJob.setReducerClass(MergeReducer.class);
             mergeJob.setOutputKeyClass(Text.class);
             mergeJob.setOutputValueClass(Text.class);
