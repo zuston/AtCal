@@ -128,8 +128,8 @@ public class Validate extends Configured implements Tool {
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String [] recordArr = value.toString().split("\\t");
             byte[] rowKey = Bytes.toBytes(recordArr[0]);
-            String total = recordArr[0].split("#")[0];
-            String abnormal = recordArr[0].split("#")[1];
+            String total = recordArr[1].split("#")[0];
+            String abnormal = recordArr[1].split("#")[1];
             Put condition = new Put(rowKey);
             condition.add(COLUMN_FAMILIY_INFO,COLUMN_TOTAL,Bytes.toBytes(total));
             condition.add(COLUMN_ABNORMAL,COLUMN_ABNORMAL,Bytes.toBytes(abnormal));
