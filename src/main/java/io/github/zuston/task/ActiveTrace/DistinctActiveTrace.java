@@ -24,7 +24,7 @@ public class DistinctActiveTrace extends Configured implements Tool {
 
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            context.getCounter(COUNTER.NONE_DISTINCTED_ACTIVE_RECORD_COUNT).increment(1);
+//            context.getCounter(COUNTER.NONE_DISTINCTED_ACTIVE_RECORD_COUNT).increment(1);
             String no = value.toString().split("\\t+")[1];
             parser.parser(no);
             context.write(new Text(parser.getTRACE_ID()), value);
@@ -38,7 +38,7 @@ public class DistinctActiveTrace extends Configured implements Tool {
 
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            context.getCounter(COUNTER.DISTINCTED_ACTIVE_RECORD_COUNT).increment(1);
+//            context.getCounter(COUNTER.DISTINCTED_ACTIVE_RECORD_COUNT).increment(1);
             context.write(values.iterator().next(),null);
         }
     }

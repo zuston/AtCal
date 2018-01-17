@@ -11,6 +11,7 @@ import io.github.zuston.task.ActiveTrace.ActiveTrace2Hbase;
 import io.github.zuston.task.ActiveTrace.DistinctActiveTrace;
 import io.github.zuston.task.ActiveTrace.FilterCurrentActiveTrace;
 import io.github.zuston.task.ActiveTrace.Merge2ActiveTrace;
+import io.github.zuston.task.ValidateTraceTime.Validate;
 import io.github.zuston.test.HdfsToolTest;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.ToolRunner;
@@ -50,6 +51,7 @@ public class Init {
     public static final int DISTINCT_ACTIVE_TRACE = 17;
     public static final int MERGE_PREDICT_TIME_2_ACTIVE_TRACE = 15;
     public static final int AT2HBAE = 18;
+    public static final int VALIDATE = 19;
 
 
     public static final int HDFS_TEST = 16;
@@ -75,6 +77,8 @@ public class Init {
         commandHm.put("distincttrace".toLowerCase(), DISTINCT_ACTIVE_TRACE);
         commandHm.put("merge2activetrace".toLowerCase(), MERGE_PREDICT_TIME_2_ACTIVE_TRACE);
         commandHm.put("at2hbase".toLowerCase(), AT2HBAE);
+
+        commandHm.put("validate".toLowerCase(), VALIDATE);
 
         commandHm.put("hdfstest".toLowerCase(), HDFS_TEST);
     }
@@ -163,6 +167,10 @@ public class Init {
 
             case  AT2HBAE :
                 exitCode = ToolRunner.run(new ActiveTrace2Hbase(), options);
+                break;
+
+            case VALIDATE :
+                exitCode = ToolRunner.run(new Validate(), options);
                 break;
 
             case HDFS_TEST :

@@ -1,5 +1,6 @@
 package io.github.zuston.Util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -45,7 +46,30 @@ public class HdfsTool {
         return lineList;
     }
 
-    public static List<String> readFromLocal(){
-        return null;
+
+    public static boolean deleteFile(String path){
+        Configuration configuration = new Configuration();
+        String dst = HDFS_URL + path;
+        FileSystem fs = null;
+        try {
+            fs = FileSystem.get(configuration);
+            fs.delete(new Path(dst));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean deleteDir(String dir) throws IOException {
+        if (StringUtils.isBlank(dir)) {
+            return false;
+        }
+        dir = HDFS_URL + dir;
+        Configuration conf = new Configuration();
+        FileSystem fs = FileSystem.get(URI.create(dir), conf);
+        fs.delete(new Path(dir), true);
+        fs.close();
+        return true;
     }
 }

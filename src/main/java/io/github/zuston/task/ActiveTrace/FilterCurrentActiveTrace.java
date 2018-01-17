@@ -152,35 +152,50 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                 maxScanTime = maxScanTime > scanTime ? maxScanTime : scanTime;
                 recordList.add(record);
             }
-//            for (Text record : values){
-//                parser.parser(record.toString());
-//                long scanTime = Timestamp.valueOf(parser.getSCAN_TIME()).getTime();
-//                minScanTime = minScanTime > scanTime ? scanTime : minScanTime;
-//                maxScanTime = maxScanTime > scanTime ? maxScanTime : scanTime;
-//                recordList.add(record);
-//            }
+
             // 不在设置时间的区间内，剔除
             if (minScanTime < (settingDateTimestamp+86400000) &&
                     maxScanTime > settingDateTimestamp){
                 for (Text record : recordList){
                     parser.parser(record.toString());
+
+                    String desp = parser.getDESCPT();
                     if (Timestamp.valueOf(parser.getSCAN_TIME()).getTime()==maxScanTime){
-                        String desp = parser.getDESCPT();
                         if (checkHaveArrived(desp)){
                             context.getCounter(Counter.HAVE_ARRIVED_RECORD_COUNT).increment(1);
                         }
                     }
                     String siteId = parser.getSITE_ID();
                     String destinationName = parser.getDEST_SITE_NAME();
-                    if (siteId != null && destinationName != null && !destinationName.equals("")){
+
+                    // 针对数据的特殊情况，有的 destinationName 没有，但是 desp 只有 xxx已到达，证明自己流转
+
+                    //3028390829#59999907067974#20#17814#sw0001#沧州分拨中心#20#沧州市##窦国安#2017-11-12 17:14:20######【沧州市】沧州分拨中心已到达#1#2017-11-14 00:00:00##沧县###0##1#
+                    //3028390834#59999907077628#50#15148#sw0001#青浦分拨中心#20#上海市##邹旭#2017-11-12 17:14:20##萧山分拨中心#sw20395###【上海市】青浦分拨中心已发出,下一站萧山分拨中心#1#2017-11-14 00:00:00##青浦区###0#杭州市#1#
+                    //3028390838#57999900635893#90#17168#sw0001#广州石井十部#10#广州市##褚风#2017-11-12 17:14:20######【广州市】广州石井十部快件已被签收，签收人是本人#1#2017-11-14 00:00:00##白云区###0##1#
+                    //3028390990#57999900407946#80#16479#sw0001#青浦徐泾一部#10#上海市##施天#2017-11-12 17:14:27####施天#4001040088#【上海市】青浦徐泾一部快递员正在派件,联系电话4001040088#1#2017-11-14 00:00:00##青浦区###0##1#
+
+                    boolean trickTag = false;
+                    if (destinationName.equals("")){
+                        boolean firstSolu = desp.substring(desp.length()-3, desp.length()).equals("已到达");
+                        boolean secondSolu = desp.contains("已被签收");
+                        boolean thirdSolu = desp.contains("正在派件");
+                        trickTag = firstSolu || secondSolu || thirdSolu;
+                    }
+
+                    if (siteId != null && destinationName != null && (!destinationName.equals("") || trickTag)){
                         if (!name2idMapper.containsKey(destinationName)){
                             context.getCounter(Counter.DESTINATION_NAME_NOT_EXIST_COUNT).increment(1);
                             logger.debug("mapper dont exist, destinationName : {}",destinationName);
                             continue;
                         }
-                        String destinationId = name2idMapper.get(destinationName);
+                        String destinationId;
+                        if (trickTag){
+                            destinationId = siteId;
+                        }else {
+                            destinationId = name2idMapper.get(destinationName);
+                        }
                         context.getCounter(Counter.FILTERED_DATA_COUNT).increment(1);
-                        // tricks, 对应获取预测时间的值, siteID#destination
                         Text keyText = new Text();
                         keyText.set(String.format("%s#%s",siteId, destinationId));
                         context.write(keyText, record);
@@ -197,7 +212,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
         }
 
         private boolean checkHaveArrived(String desp) {
-            if (desp.contains("已被签收"))  return true;
+            if (desp.contains("已被签收") || desp.contains("正在派件"))  return true;
             return false;
         }
     }

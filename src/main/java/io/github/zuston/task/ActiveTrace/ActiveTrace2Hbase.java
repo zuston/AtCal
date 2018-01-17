@@ -120,8 +120,6 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
             if (table!=null)    table.close();
         }
 
-
-
         return 0;
     }
 

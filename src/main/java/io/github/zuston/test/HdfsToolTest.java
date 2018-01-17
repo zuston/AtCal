@@ -5,6 +5,7 @@ import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,7 @@ public class HdfsToolTest extends Configured implements Tool {
 
     public static final String mapperPath = "/site2nameMapper-1/part-r-00000";
 
-
-    public int run(String[] strings) throws Exception {
+    public void read() throws IOException {
         HashMap<String,String> name2IdMapper = new HashMap<String, String>();
         List<String> lineList = HdfsTool.readFromHdfs(this.getConf(), mapperPath);
         System.out.println(lineList.size());
@@ -35,6 +35,16 @@ public class HdfsToolTest extends Configured implements Tool {
         }
 
         System.out.println(name2IdMapper.toString());
+    }
+
+    public void delete() throws IOException {
+        boolean v = HdfsTool.deleteDir( "/aneOutput/activeTrace/test/test_5");
+        System.out.println(v);
+    }
+
+
+    public int run(String[] strings) throws Exception {
+        delete();
         return 0;
     }
 

@@ -42,9 +42,9 @@ public class TraceTimeComparsionMr extends Configured implements Tool {
                 varianceAverage = Long.parseLong(first.split(":")[1]);
             }
             if (varianceAverage > varianceMiddle){
-                context.getCounter(Counter.MIDDLE_WIN_COUNT).increment(1);
+//                context.getCounter(Counter.MIDDLE_WIN_COUNT).increment(1);
             }else{
-                context.getCounter(Counter.AVEARGE_WIN_COUNT).increment(1);
+//                context.getCounter(Counter.AVEARGE_WIN_COUNT).increment(1);
             }
             context.write(null, null);
         }
