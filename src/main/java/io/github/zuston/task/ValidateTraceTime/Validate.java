@@ -78,7 +78,7 @@ public class Validate extends Configured implements Tool {
             long recordTime = Timestamp.valueOf(scanTime).getTime();
 
             boolean normalTag = true;
-            if (recordTime + ptime > settingTimeStamp)  normalTag = false;
+            if (recordTime + ptime * 1000 * 60 > settingTimeStamp)  normalTag = false;
 
             int valueComponent = ((normalTag ? 0 : 1));
             context.getCounter(Counter.VALIDATE_LINE_COUNT).increment(1);
