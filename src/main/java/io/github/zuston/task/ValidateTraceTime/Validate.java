@@ -1,9 +1,15 @@
 package io.github.zuston.task.ValidateTraceTime;
 
+import io.github.zuston.Util.BulkLoadTool;
+import io.github.zuston.Util.HbaseTool;
 import io.github.zuston.Util.HdfsTool;
 import io.github.zuston.Util.JobGenerator;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -11,6 +17,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,6 +116,27 @@ public class Validate extends Configured implements Tool {
         }
     }
 
+    static class ImporterMapper extends Mapper<LongWritable, Text, ImmutableBytesWritable, Put> {
+
+        static final byte[] COLUMN_FAMILIY_INFO = Bytes.toBytes("info");
+
+        static final byte[] COLUMN_TOTAL = Bytes.toBytes("total");
+
+        static final byte[] COLUMN_ABNORMAL = Bytes.toBytes("abnormal");
+
+        @Override
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            String [] recordArr = value.toString().split("\\t");
+            byte[] rowKey = Bytes.toBytes(recordArr[0]);
+            String total = recordArr[0].split("#")[0];
+            String abnormal = recordArr[0].split("#")[1];
+            Put condition = new Put(rowKey);
+            condition.add(COLUMN_FAMILIY_INFO,COLUMN_TOTAL,Bytes.toBytes(total));
+            condition.add(COLUMN_ABNORMAL,COLUMN_ABNORMAL,Bytes.toBytes(abnormal));
+            context.write(new ImmutableBytesWritable(rowKey), condition);
+        }
+    }
+
     /**
      *  输入路径
      *  输出路径
@@ -118,20 +146,49 @@ public class Validate extends Configured implements Tool {
     public int run(String[] args) throws Exception {
 
         String middlePath = "/tempJob";
+        String hfilePath = "/tempHfile";
+
         String [] validateOptions = new String[]{
                 args[0],
                 middlePath,
                 args[2]
         };
-
         String [] mergeOptions = new String[]{
             middlePath,
                 args[1],
                 args[2]
         };
+        String tableName = "Validate";
+
+        String [] hfileOptions = new String[] {
+            args[1],
+                hfilePath,
+                tableName
+        };
+
+        String [] bulkloadOptions = new String[]{
+                tableName,
+                hfilePath
+        };
 
         this.getConf().set(CONTEXT_TIME_TAG, String.valueOf(Timestamp.valueOf(args[3]).getTime()));
-        Job validateJob = JobGenerator.SimpleJobGenerator(this, this.getConf(), validateOptions);
+        try {
+            validateJob(validateOptions);
+            mergeJob(mergeOptions);
+            createHbaseTable(tableName);
+            generateHfile(hfileOptions);
+            bulkLoad(bulkloadOptions);
+            HdfsTool.deleteDir(middlePath);
+            HdfsTool.deleteDir(hfilePath);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    private void validateJob(String [] opts) throws Exception {
+        Job validateJob = JobGenerator.SimpleJobGenerator(this, this.getConf(), opts);
         validateJob.setJarByClass(Validate.class);
         validateJob.setMapperClass(ValidateMapper.class);
         validateJob.setMapOutputValueClass(Text.class);
@@ -139,25 +196,48 @@ public class Validate extends Configured implements Tool {
         validateJob.setReducerClass(ValidateReducer.class);
         validateJob.setOutputKeyClass(Text.class);
         validateJob.setOutputValueClass(IntWritable.class);
-
         if (validateJob.waitForCompletion(true)){
-            Job mergeJob = JobGenerator.SimpleJobGenerator(this, this.getConf(), mergeOptions);
-            mergeJob.setJarByClass(Validate.class);
-            mergeJob.setMapperClass(MergeMapper.class);
-            mergeJob.setMapOutputKeyClass(Text.class);
-            mergeJob.setMapOutputValueClass(IntWritable.class);
-            mergeJob.setReducerClass(MergeReducer.class);
-            mergeJob.setOutputKeyClass(Text.class);
-            mergeJob.setOutputValueClass(Text.class);
-            if (mergeJob.waitForCompletion(true)){
-                HdfsTool.deleteDir(middlePath);
-            }else {
-                logger.error("merge job is error");
-            }
+            logger.error("validate JOB SUCCES");
         }else {
-            logger.error("validate job is error");
+            throw new Exception("validateJob error");
         }
+    }
 
-        return 0;
+    private void mergeJob(String [] opts) throws Exception {
+        Job mergeJob = JobGenerator.SimpleJobGenerator(this, this.getConf(), opts);
+        mergeJob.setJarByClass(Validate.class);
+        mergeJob.setMapperClass(MergeMapper.class);
+        mergeJob.setMapOutputKeyClass(Text.class);
+        mergeJob.setMapOutputValueClass(IntWritable.class);
+        mergeJob.setReducerClass(MergeReducer.class);
+        mergeJob.setOutputKeyClass(Text.class);
+        mergeJob.setOutputValueClass(Text.class);
+        if (mergeJob.waitForCompletion(true)){
+            logger.error("merge JOB SUCCES");
+        }else {
+            throw  new Exception("merge job is error");
+        }
+    }
+
+    private void createHbaseTable(String tableName) throws IOException {
+        HbaseTool htool = new HbaseTool();
+        htool.createHbaseTable(tableName);
+    }
+
+    private void generateHfile(String [] opts) throws Exception {
+        HTable table = null;
+        Job job = JobGenerator.HbaseQuickImportJobGnerator(this, this.getConf(),opts, table);
+        job.setJobName("validate2Hbase");
+        job.setMapperClass(ImporterMapper.class);
+        job.getConfiguration().setStrings("mapreduce.reduce.shuffle.input.buffer.percent", "0.1");
+        if (job.waitForCompletion(true)){
+            logger.error("生成 hfile 成功");
+        }else {
+            throw new Exception("生成 hfile 失败");
+        }
+    }
+
+    private void bulkLoad(String [] opts) throws Exception {
+        ToolRunner.run(new BulkLoadTool(), opts);
     }
 }
