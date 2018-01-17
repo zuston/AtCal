@@ -39,7 +39,7 @@ public class DistinctActiveTrace extends Configured implements Tool {
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             context.getCounter(COUNTER.DISTINCTED_ACTIVE_RECORD_COUNT).increment(1);
-            context.write(values.iterator().next(),new Text(""));
+            context.write(values.iterator().next(),null);
         }
     }
 

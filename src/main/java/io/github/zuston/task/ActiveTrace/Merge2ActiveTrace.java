@@ -113,7 +113,7 @@ public class Merge2ActiveTrace extends Configured implements Tool {
 
         // 评估预测
         private double predictAlg(String time, String count, String var) {
-            return Long.parseLong(time) + believeValue * Math.sqrt(Double.parseDouble(var)) / Math.sqrt(Double.parseDouble(count));
+            return Double.valueOf(time) + believeValue * Math.sqrt(Double.parseDouble(var)) / Math.sqrt(Double.parseDouble(count));
         }
     }
 
