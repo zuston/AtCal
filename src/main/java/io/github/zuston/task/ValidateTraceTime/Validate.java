@@ -37,6 +37,7 @@ public class Validate extends Configured implements Tool {
             String originalRecord = recordList[1].split("_")[0];
             parser.parser(originalRecord);
             String ewbno = parser.getEWB_NO();
+            context.getCounter(Counter.ALL_DATA_COUNT).increment(1);
             context.write(new Text(ewbno),text);
         }
     }
@@ -103,6 +104,7 @@ public class Validate extends Configured implements Tool {
                 count++;
                 nonormal += v.get();
             }
+            if (nonormal > 0)   context.getCounter(Counter.NO_NORMAL_COUNT).increment(1);
             context.write(key,new Text(count+"#"+nonormal));
         }
     }
