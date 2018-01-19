@@ -1,17 +1,16 @@
 package io.github.zuston;
 
+import io.github.zuston.Util.BulkLoadTool;
 import io.github.zuston.Util.HbaseTool;
 import io.github.zuston.basic.Ewb.EwbDataSampleCollector;
 import io.github.zuston.basic.Ewb.EwbImporterMr;
 import io.github.zuston.basic.Trace.OriginalTraceImporterMr;
 import io.github.zuston.basic.Trace.TraceDataSampleCollector;
 import io.github.zuston.basic.TraceTime.*;
-import io.github.zuston.Util.BulkLoadTool;
-import io.github.zuston.task.ActiveTrace.ActiveTrace2Hbase;
-import io.github.zuston.task.ActiveTrace.DistinctActiveTrace;
-import io.github.zuston.task.ActiveTrace.FilterCurrentActiveTrace;
-import io.github.zuston.task.ActiveTrace.Merge2ActiveTrace;
+import io.github.zuston.task.ActiveTrace.*;
+import io.github.zuston.task.TaskProcess;
 import io.github.zuston.task.ValidateTraceTime.Validate;
+import io.github.zuston.task.ValidateTraceTime.Validate2Mysql;
 import io.github.zuston.test.HdfsToolTest;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.util.ToolRunner;
@@ -53,6 +52,13 @@ public class Init {
     public static final int AT2HBAE = 18;
     public static final int VALIDATE = 19;
 
+    public static final int AT2MYSQL = 20;
+
+    public static final int V2MYSQL = 21;
+
+
+    public static final int ANE = 22;
+
 
     public static final int HDFS_TEST = 16;
 
@@ -78,7 +84,13 @@ public class Init {
         commandHm.put("merge2activetrace".toLowerCase(), MERGE_PREDICT_TIME_2_ACTIVE_TRACE);
         commandHm.put("at2hbase".toLowerCase(), AT2HBAE);
 
+        commandHm.put("at2mysql".toLowerCase(), AT2MYSQL);
+
         commandHm.put("validate".toLowerCase(), VALIDATE);
+
+        commandHm.put("validate2mysql".toLowerCase(), V2MYSQL);
+
+        commandHm.put("ane", ANE);
 
         commandHm.put("hdfstest".toLowerCase(), HDFS_TEST);
     }
@@ -175,6 +187,19 @@ public class Init {
 
             case HDFS_TEST :
                 exitCode = ToolRunner.run(new HdfsToolTest(), options);
+                break;
+
+            case AT2MYSQL :
+                exitCode = ToolRunner.run(new ActiveTrace2Mysql(), options);
+                break;
+
+            case V2MYSQL :
+                exitCode = ToolRunner.run(new Validate2Mysql(), options);
+                break;
+
+            // 连续分析入库
+            case ANE :
+                exitCode = ToolRunner.run(new TaskProcess(), options);
                 break;
 
 

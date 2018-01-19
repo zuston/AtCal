@@ -68,11 +68,11 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             String scan_time = parser.getSCAN_TIME();
             long timestamp = Timestamp.valueOf(scan_time).getTime();
             if (!activeTraceFilter(timestamp))   {
-                context.getCounter(Counter.DEBUG_TAG_COUNT).increment(1);
+//                context.getCounter(Counter.DEBUG_TAG_COUNT).increment(1);
                 return;
             }
             String ewbNo = parser.getEWB_NO();
-            context.getCounter(Counter.GET_RECORD_COUNT).increment(1);
+//            context.getCounter(Counter.GET_RECORD_COUNT).increment(1);
             context.write(new Text(ewbNo), value);
         }
 
@@ -162,7 +162,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                     String desp = parser.getDESCPT();
                     if (Timestamp.valueOf(parser.getSCAN_TIME()).getTime()==maxScanTime){
                         if (checkHaveArrived(desp)){
-                            context.getCounter(Counter.HAVE_ARRIVED_RECORD_COUNT).increment(1);
+//                            context.getCounter(Counter.HAVE_ARRIVED_RECORD_COUNT).increment(1);
                         }
                     }
                     String siteId = parser.getSITE_ID();
@@ -185,7 +185,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
                     if (siteId != null && destinationName != null && (!destinationName.equals("") || trickTag)){
                         if (!name2idMapper.containsKey(destinationName)){
-                            context.getCounter(Counter.DESTINATION_NAME_NOT_EXIST_COUNT).increment(1);
+//                            context.getCounter(Counter.DESTINATION_NAME_NOT_EXIST_COUNT).increment(1);
                             logger.debug("mapper dont exist, destinationName : {}",destinationName);
                             continue;
                         }
@@ -195,18 +195,18 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                         }else {
                             destinationId = name2idMapper.get(destinationName);
                         }
-                        context.getCounter(Counter.FILTERED_DATA_COUNT).increment(1);
+//                        context.getCounter(Counter.FILTERED_DATA_COUNT).increment(1);
                         Text keyText = new Text();
                         keyText.set(String.format("%s#%s",siteId, destinationId));
                         context.write(keyText, record);
                     }else{
-                        context.getCounter(Counter.DIRTY_DATA_COUNT).increment(1);
+//                        context.getCounter(Counter.DIRTY_DATA_COUNT).increment(1);
                         logger.info("siteId, destination is null, 订单: {}, 数据: {}",parser.getEWB_NO(), record.toString());
                         return;
                     }
                 }
             }else{
-                context.getCounter(Counter.SCAN_TIME_LATER_COUNT).increment(1);
+//                context.getCounter(Counter.SCAN_TIME_LATER_COUNT).increment(1);
                 return;
             }
         }
@@ -225,7 +225,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
      * @return
      * @throws Exception
      *
-     * 参数1  输入
+     * 参数1  输入全部 trace 文件，固定了
      * 参数2  输出
      * 参数3  reduce 数目
      * 参数4  设定的时间 例如 2018-08-13
@@ -249,7 +249,6 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
         job.setMapperClass(FilterMapper.class);
         job.setReducerClass(FilterReducer.class);
-
 
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);

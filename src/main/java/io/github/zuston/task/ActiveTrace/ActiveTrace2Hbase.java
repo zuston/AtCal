@@ -113,13 +113,11 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
             }else{
                 logger.error("生成 hfile 失败");
             }
-
         }catch (Exception e){
             e.printStackTrace();
         }finally {
             if (table!=null)    table.close();
         }
-
         return 0;
     }
 

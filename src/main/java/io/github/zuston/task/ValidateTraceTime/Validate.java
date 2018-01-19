@@ -1,9 +1,6 @@
 package io.github.zuston.task.ValidateTraceTime;
 
-import io.github.zuston.Util.BulkLoadTool;
-import io.github.zuston.Util.HbaseTool;
-import io.github.zuston.Util.HdfsTool;
-import io.github.zuston.Util.JobGenerator;
+import io.github.zuston.Util.*;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
@@ -42,9 +39,12 @@ public class Validate extends Configured implements Tool {
         public void map(LongWritable key, Text text, Context context) throws IOException, InterruptedException {
             String [] recordList = text.toString().split("\\t");
             String originalRecord = recordList[1].split("_")[0];
-            parser.parser(originalRecord);
+            if(!parser.parser(originalRecord)){
+                context.getCounter("ValidateMapper","recordError").increment(1);
+                return;
+            }
             String ewbno = parser.getEWB_NO();
-            context.getCounter(Counter.ALL_DATA_COUNT).increment(1);
+//            context.getCounter(Counter.ALL_DATA_COUNT).increment(1);
             context.write(new Text(ewbno),text);
         }
     }
@@ -88,7 +88,7 @@ public class Validate extends Configured implements Tool {
             if (recordTime + ptime * 1000 * 60 > settingTimeStamp)  normalTag = false;
 
             int valueComponent = ((normalTag ? 0 : 1));
-            context.getCounter(Counter.VALIDATE_LINE_COUNT).increment(1);
+//            context.getCounter(Counter.VALIDATE_LINE_COUNT).increment(1);
             context.write(new Text(recordList[0]),new IntWritable(valueComponent));
         }
 
@@ -111,7 +111,7 @@ public class Validate extends Configured implements Tool {
                 count++;
                 nonormal += v.get();
             }
-            if (nonormal > 0)   context.getCounter(Counter.NO_NORMAL_COUNT).increment(1);
+//            if (nonormal > 0)   context.getCounter(Counter.NO_NORMAL_COUNT).increment(1);
             context.write(key,new Text(count+"#"+nonormal));
         }
     }
@@ -132,8 +132,17 @@ public class Validate extends Configured implements Tool {
             String abnormal = recordArr[1].split("#")[1];
             Put condition = new Put(rowKey);
             condition.add(COLUMN_FAMILIY_INFO,COLUMN_TOTAL,Bytes.toBytes(total));
-            condition.add(COLUMN_ABNORMAL,COLUMN_ABNORMAL,Bytes.toBytes(abnormal));
+            condition.add(COLUMN_FAMILIY_INFO,COLUMN_ABNORMAL,Bytes.toBytes(abnormal));
             context.write(new ImmutableBytesWritable(rowKey), condition);
+        }
+    }
+
+    static class MysqlHandlerMapper extends Mapper<LongWritable, Text, Text, Text>{
+
+        @Override
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            String [] arr = value.toString().split("\\t");
+            context.write(new Text(arr[0]+"#"+arr[1]), null);
         }
     }
 
@@ -145,8 +154,9 @@ public class Validate extends Configured implements Tool {
      */
     public int run(String[] args) throws Exception {
 
-        String middlePath = "/tempJob";
-        String hfilePath = "/tempHfile";
+        String middlePath = "/B_1_validateFilter";
+        String hfilePath = "/B_2_hfileGener";
+        String mysqlFilePath = "/B_2_mysqlGener";
 
         String [] validateOptions = new String[]{
                 args[0],
@@ -171,15 +181,31 @@ public class Validate extends Configured implements Tool {
                 hfilePath
         };
 
+        String [] mysqlHandlerOptions = new String[]{
+                args[1],
+                mysqlFilePath,
+                "0"
+        };
+
         this.getConf().set(CONTEXT_TIME_TAG, String.valueOf(Timestamp.valueOf(args[3]).getTime()));
         try {
             validateJob(validateOptions);
             mergeJob(mergeOptions);
-            createHbaseTable(tableName);
-            generateHfile(hfileOptions);
-            bulkLoad(bulkloadOptions);
+
+            // 导入到 HBASE 中
+//            createHbaseTable(tableName);
+//            generateHfile(hfileOptions);
+//            bulkLoad(bulkloadOptions);
             HdfsTool.deleteDir(middlePath);
-            HdfsTool.deleteDir(hfilePath);
+//            HdfsTool.deleteDir(hfilePath);
+
+            // 生成 mysql 可用文件
+            mysqlHandler(mysqlHandlerOptions);
+            // 导入到 mysql 中
+            import2Mysql(mysqlFilePath);
+            // 删除中间文件
+            HdfsTool.deleteDir(mysqlFilePath);
+
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -219,6 +245,8 @@ public class Validate extends Configured implements Tool {
         }
     }
 
+
+    // 生成导入到 hbase 中
     private void createHbaseTable(String tableName) throws IOException {
         HbaseTool htool = new HbaseTool();
         htool.createHbaseTable(tableName);
@@ -239,5 +267,32 @@ public class Validate extends Configured implements Tool {
 
     private void bulkLoad(String [] opts) throws Exception {
         ToolRunner.run(new BulkLoadTool(), opts);
+    }
+
+    // 生成 mysql 文件
+    private void mysqlHandler(String [] opts) throws Exception {
+        Job job = JobGenerator.SimpleJobGenerator(this, this.getConf(), opts);
+        job.setJobName("validateMysqlHandler");
+        job.setJarByClass(Validate.class);
+        job.setMapperClass(MysqlHandlerMapper.class);
+        job.setNumReduceTasks(0);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+        if (job.waitForCompletion(true)){
+            logger.error("mysqlHandler JOB SUCCES");
+        }else {
+            throw  new Exception("mysqlHandler job is error");
+        }
+    }
+
+    private void import2Mysql(String hdfsPath){
+        String deleteDataLine = "mysql -uroot -pshacha -e 'delete from ane.validate' ";
+        String import2MysqlLine = "sqoop-export   --connect \"jdbc:mysql://10.10.0.91:3306/ane?useUnicode=true&characterEncoding=utf-8\"  --username root  --password shacha --table validate  --input-fields-terminated-by \"#\" --export-dir "+hdfsPath;
+        try {
+            ShellTool.exec(deleteDataLine);
+            ShellTool.exec(import2MysqlLine);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -91,7 +91,7 @@ public class Merge2ActiveTrace extends Configured implements Tool {
             Iterator<Text> iterator = values.iterator();
             Text predictData = iterator.next();
             if (predictData.toString().split("#").length!=1){
-                context.getCounter(COUNTER.MERGE_ERROR).increment(1);
+//                context.getCounter(COUNTER.MERGE_ERROR).increment(1);
                 return;
             }
             String [] array = predictData.toString().split(":");
@@ -104,10 +104,10 @@ public class Merge2ActiveTrace extends Configured implements Tool {
             while (iterator.hasNext()){
                 Text value = iterator.next();
                 if (value.toString().split("#").length==1){
-                    context.getCounter(COUNTER.MERGE_ERROR).increment(1);
+//                    context.getCounter(COUNTER.MERGE_ERROR).increment(1);
                     return;
                 }
-                context.write(new Text(value.toString()+"_"+predictTime),null);
+                context.write(new Text(value.toString()+"#"+predictTime),null);
             }
         }
 
