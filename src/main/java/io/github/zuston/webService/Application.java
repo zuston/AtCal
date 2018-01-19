@@ -14,6 +14,7 @@ public class Application {
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(Application.class);
         application.addListeners(new HBaseListener());
+//        application.addListeners(new MysqlListener());
         application.run(args);
     }
 }

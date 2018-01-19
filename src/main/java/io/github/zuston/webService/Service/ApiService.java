@@ -3,10 +3,12 @@ package io.github.zuston.webService.Service;
 import com.google.gson.Gson;
 import io.github.zuston.webService.Pojo.Site2SitePojo;
 import io.github.zuston.webService.Tool.HBaseTool;
+import io.github.zuston.webService.Tool.MysqlTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +22,9 @@ public class ApiService {
     @Autowired
     private Gson gson;
 
-    public static final String VALIDATE_TABLE_NAME = "Validate";
+    public static final String VALIDATE_TABLE_NAME = "validate";
 
-    public String siteTraceInfo(){
+    public String siteTraceInfo_HBase(){
         List<Site2SitePojo> reslist = new ArrayList<Site2SitePojo>();
         String resJson = "";
         try {
@@ -43,18 +45,19 @@ public class ApiService {
         return resJson;
     }
 
+    public String siteTraceInfo(){
+        try {
+            List<Site2SitePojo> reslist = MysqlTool.QueryAll(VALIDATE_TABLE_NAME);
+            String resJson = gson.toJson(reslist);
+            return  resJson;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     // 查找出当前站点的在途订单，再查询订单详情。
     public String siteInfo(long siteId, int size, int tag) {
-        String tableName = "ActiveRecord_Out";
-        if (tag==2){
-            tableName = "ActiveRecord_In";
-        }
-        List<HashMap<String,String>> siteTraceList = HBaseTool.ScanByPrefix(tableName, String.valueOf(siteId), size);
-        List<String> rowKeyList = new ArrayList<String>();
-        for (HashMap<String, String> hm : siteTraceList){
-            String joinKey = hm.get("rowkeys");
-//            rowKeyList.add();
-        }
         return "";
     }
 }

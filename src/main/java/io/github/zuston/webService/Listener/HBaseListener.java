@@ -53,7 +53,5 @@ public class HBaseListener implements ApplicationListener<ApplicationStartedEven
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 }

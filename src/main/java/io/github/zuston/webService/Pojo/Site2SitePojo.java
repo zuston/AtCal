@@ -9,6 +9,9 @@ public class Site2SitePojo {
     public int total;
     public int abnormal;
 
+    public Site2SitePojo(){
+    }
+
     public Site2SitePojo(String startName, String endName, int total, int abnormal) {
         this.startId = startName;
         this.endId = endName;

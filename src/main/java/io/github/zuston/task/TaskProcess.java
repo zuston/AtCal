@@ -1,9 +1,11 @@
 package io.github.zuston.task;
 
+import io.github.zuston.Util.HdfsTool;
 import io.github.zuston.task.ActiveTrace.ActiveTrace2Mysql;
 import io.github.zuston.task.ActiveTrace.DistinctActiveTrace;
 import io.github.zuston.task.ActiveTrace.FilterCurrentActiveTrace;
 import io.github.zuston.task.ActiveTrace.Merge2ActiveTrace;
+import io.github.zuston.task.ValidateTraceTime.Validate;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -87,13 +89,13 @@ public class TaskProcess extends Configured implements Tool {
         ToolRunner.run(new DistinctActiveTrace(), distinctOpts);
         ToolRunner.run(new Merge2ActiveTrace(), mergeOpts);
         ToolRunner.run(new ActiveTrace2Mysql(), _2mysqlOpts);
-//        ToolRunner.run(new Validate(), validateOpts);
+        ToolRunner.run(new Validate(), validateOpts);
 
-//        HdfsTool.deleteDir(filterOutputPath);
-//        HdfsTool.deleteDir(distinctPath);
-//        HdfsTool.deleteDir(mergePath);
-//        HdfsTool.deleteDir(mysqlActiveTracePath);
-//        HdfsTool.deleteDir(validatePath);
+        HdfsTool.deleteDir(filterOutputPath);
+        HdfsTool.deleteDir(distinctPath);
+        HdfsTool.deleteDir(mergePath);
+        HdfsTool.deleteDir(mysqlActiveTracePath);
+        HdfsTool.deleteDir(validatePath);
 
         return 0;
     }
