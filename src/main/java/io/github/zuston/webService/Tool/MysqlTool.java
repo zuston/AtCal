@@ -1,6 +1,7 @@
 package io.github.zuston.webService.Tool;
 
 import io.github.zuston.webService.Pojo.Site2SitePojo;
+import io.github.zuston.webService.Pojo.TraceInfoPojo;
 import io.github.zuston.webService.Util.MysqlUtil;
 
 import java.sql.Connection;
