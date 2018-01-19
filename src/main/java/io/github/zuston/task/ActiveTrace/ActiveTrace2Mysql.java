@@ -28,7 +28,8 @@ public class ActiveTrace2Mysql extends Configured implements Tool {
             String [] arr = text.toString().split("\\t");
             String endId = arr[0].split("#")[1];
             String record = arr[1];
-            if (!parser.parser(record)){
+            String originalRecord = record.substring(0, record.lastIndexOf("#"));
+            if (!parser.parser(originalRecord)){
                 context.getCounter("ActiveTraceMysql","recordError").increment(1);
                 return;
             }
