@@ -32,16 +32,7 @@ public class StringTest {
 //        System.out.println(time2);
 //        System.out.println((time2-time)/1000/60/60);
 
-        for (int i=0;i<20;i++){
-            if (200==200){
-                if (100==100){
-                    if (i==10){
-                        System.out.println("error "+i);
-                        continue;
-                    }
-                }
-            }
-            System.out.println(i);
-        }
+        String l = "1000009#\t2531851996#90000115257621#70#1000009#9379201#洛阳分拨中心#20#洛阳市#353957#李云锋#2017-09-22 19:49:36##洛阳汝阳一部#3791101###【洛阳市】洛阳分拨中心已发出,下一站洛阳汝阳一部##2017-09-22 19:54:49##涧西区#2.9##0#洛阳市#1##748.1572883548553";
+        System.out.println(l.split("\\t")[0].split("#")[1]);
     }
 }

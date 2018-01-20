@@ -120,6 +120,10 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                     if (splitRecord.length != 2)    continue;
                     String id = splitRecord[0];
                     String name = splitRecord[1];
+                    if (id==null || id.equals("")){
+                        // 针对 揭阳分拣中心
+                        id="-2";
+                    }
                     mapper.put(name, id);
                 }
 

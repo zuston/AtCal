@@ -26,6 +26,10 @@ public class ActiveTrace2Mysql extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text text, Context context) throws IOException, InterruptedException {
             String [] arr = text.toString().split("\\t");
+            if (arr[0].split("#").length<=1)    {
+                context.getCounter("ActiveTrace2Mysql","header error").increment(1);
+                return;
+            }
             String endId = arr[0].split("#")[1];
             String record = arr[1];
             String originalRecord = record.substring(0, record.lastIndexOf("#"));
