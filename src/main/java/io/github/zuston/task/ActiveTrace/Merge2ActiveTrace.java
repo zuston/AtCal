@@ -47,6 +47,7 @@ public class Merge2ActiveTrace extends Configured implements Tool {
             parser.parser(splitArr[1]);
             String scanTime = parser.getSCAN_TIME();
             String [] arr = scanTime.split("\\s+")[0].split("-");
+            // 修复匹配不到预测时间的bug
             String frontSuffix = arr[0]+"-"+arr[1];
             context.write(new FilterPair(splitArr[0]+"#"+frontSuffix,"1"),value);
         }

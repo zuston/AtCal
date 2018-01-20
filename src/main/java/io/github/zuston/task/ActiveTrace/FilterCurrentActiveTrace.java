@@ -163,6 +163,10 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             // 不在设置时间的区间内，剔除
             if (minScanTime < (settingDateTimestamp+86400000) &&
                     maxScanTime > settingDateTimestamp){
+
+                // 链路准确性过滤, 暴力过滤
+                if (!filterAllTrace(recordList, context))    return;
+
                 for (String record : recordList){
                    if (!parser.parser(record)){
                        context.getCounter("filterReducer","parserError_2").increment(1);
@@ -189,7 +193,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                     if (destinationName.equals("")){
                         boolean firstSolu = desp.substring(desp.length()-3, desp.length()).equals("已到达");
                         boolean secondSolu = desp.contains("已被签收");
-                        boolean thirdSolu = desp.contains("正在派件");
+                        boolean thirdSolu = desp.contains("派件");
                         trickTag = firstSolu || secondSolu || thirdSolu;
                     }
 
@@ -230,6 +234,24 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             if (desp.contains("已被签收") || desp.contains("正在派件"))  return true;
             return false;
         }
+
+        private boolean filterAllTrace(List<String> recordList, Context context){
+            boolean successTag = true;
+            for (String record : recordList){
+                if (!parser.parser(record)){
+                    context.getCounter("filterReducer","parserError_3").increment(1);
+                    successTag = false;
+                    break;
+                }
+                String destinationName = parser.getDEST_SITE_NAME();
+                if (!destinationName.equals("") && !name2idMapper.containsKey(destinationName)){
+                    successTag = false;
+                    break;
+                }
+            }
+            return successTag;
+        }
+
     }
 
 
