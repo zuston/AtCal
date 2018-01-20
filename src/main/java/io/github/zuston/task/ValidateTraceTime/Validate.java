@@ -38,7 +38,9 @@ public class Validate extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text text, Context context) throws IOException, InterruptedException {
             String [] recordList = text.toString().split("\\t");
-            String originalRecord = recordList[1].split("_")[0];
+//            String originalRecord = recordList[1].split("_")[0];
+            String line = recordList[1];
+            String originalRecord = line.substring(0, line.lastIndexOf("#"));
             if(!parser.parser(originalRecord)){
                 context.getCounter("ValidateMapper","recordError").increment(1);
                 return;
@@ -64,8 +66,12 @@ public class Validate extends Configured implements Tool {
 
             for (Text value : values){
                 String [] recordList = value.toString().split("\\t");
-                String originalRecord = recordList[1].split("_")[0];
-                parser.parser(originalRecord);
+                String line = recordList[1];
+                String originalRecord = line.substring(0, line.lastIndexOf("#"));
+                if(!parser.parser(originalRecord)) {
+                    context.getCounter("validate","parser error").increment(1);
+                    continue;
+                }
                 String scanTime = parser.getSCAN_TIME();
                 long timestamp = Timestamp.valueOf(scanTime).getTime();
                 if (timestamp < settingTimeStamp && settingTimeStamp-timestamp < minV) {
@@ -77,9 +83,10 @@ public class Validate extends Configured implements Tool {
             if (minV == Long.MAX_VALUE)     return;
 
             String [] recordList = record.split("\\t");
-            String originalRecord = recordList[1].split("_")[0];
+            String line = recordList[1];
+            String originalRecord = line.substring(0, line.lastIndexOf("#"));
             parser.parser(originalRecord);
-            String predictTime = recordList[1].split("_")[1];
+            String predictTime = line.substring(line.lastIndexOf("#")+1,line.length());
             double ptime = Double.valueOf(predictTime);
             String scanTime = parser.getSCAN_TIME();
             long recordTime = Timestamp.valueOf(scanTime).getTime();
@@ -88,7 +95,7 @@ public class Validate extends Configured implements Tool {
             if (recordTime + ptime * 1000 * 60 > settingTimeStamp)  normalTag = false;
 
             int valueComponent = ((normalTag ? 0 : 1));
-//            context.getCounter(Counter.VALIDATE_LINE_COUNT).increment(1);
+            context.getCounter("validate","VALIDATE_LINE_COUNT").increment(1);
             context.write(new Text(recordList[0]),new IntWritable(valueComponent));
         }
 
@@ -196,7 +203,7 @@ public class Validate extends Configured implements Tool {
 //            createHbaseTable(tableName);
 //            generateHfile(hfileOptions);
 //            bulkLoad(bulkloadOptions);
-            HdfsTool.deleteDir(middlePath);
+//            HdfsTool.deleteDir(middlePath);
 //            HdfsTool.deleteDir(hfilePath);
 
             // 生成 mysql 可用文件
@@ -204,7 +211,7 @@ public class Validate extends Configured implements Tool {
             // 导入到 mysql 中
             import2Mysql(mysqlFilePath);
             // 删除中间文件
-            HdfsTool.deleteDir(mysqlFilePath);
+//            HdfsTool.deleteDir(mysqlFilePath);
 
         }catch (Exception e){
             e.printStackTrace();
@@ -281,7 +288,7 @@ public class Validate extends Configured implements Tool {
         if (job.waitForCompletion(true)){
             logger.error("mysqlHandler JOB SUCCES");
         }else {
-            throw  new Exception("mysqlHandler job is error");
+            throw new Exception("mysqlHandler job is error");
         }
     }
 

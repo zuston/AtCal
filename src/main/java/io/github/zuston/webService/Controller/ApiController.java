@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.sql.SQLException;
+
 /**
  * Created by zuston on 2018/1/18.
  */
@@ -24,7 +26,7 @@ public class ApiController {
     }
 
     @RequestMapping(value = "/siteinfo", method = RequestMethod.GET)
-    public String siteInfo(@RequestParam("siteId")long siteId, @RequestParam("size")int size, @RequestParam("tag")int tag){
+    public String siteInfo(@RequestParam("siteId")long siteId, @RequestParam("size")int size, @RequestParam("tag")int tag) throws SQLException {
         return apiService.siteInfo(siteId, size, tag);
     }
 
@@ -32,5 +34,4 @@ public class ApiController {
     public String traceInfo(){
         return null;
     }
-
 }

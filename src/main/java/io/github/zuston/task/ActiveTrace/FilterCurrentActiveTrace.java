@@ -139,30 +139,36 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             // filter 最小 scan_time 大于 current 的情况
             // 解析订单合理性，时间节点是否连贯
             // 判断订单是否已经送达
-            Set<Text> recordList = new HashSet<Text>();
+            List<String> recordList = new ArrayList<String>();
             long minScanTime = Long.MAX_VALUE;
             long maxScanTime = Long.MIN_VALUE;
 
             Iterator<Text> iterator = values.iterator();
             while (iterator.hasNext()){
                 Text record = iterator.next();
-                parser.parser(record.toString());
+                if (!parser.parser(record.toString()) ) {
+                    context.getCounter("filterReducer","parserError_1").increment(1);
+                    continue;
+                }
                 long scanTime = Timestamp.valueOf(parser.getSCAN_TIME()).getTime();
                 minScanTime = minScanTime > scanTime ? scanTime : minScanTime;
                 maxScanTime = maxScanTime > scanTime ? maxScanTime : scanTime;
-                recordList.add(record);
+                recordList.add(record.toString());
             }
 
             // 不在设置时间的区间内，剔除
             if (minScanTime < (settingDateTimestamp+86400000) &&
                     maxScanTime > settingDateTimestamp){
-                for (Text record : recordList){
-                    parser.parser(record.toString());
+                for (String record : recordList){
+                   if (!parser.parser(record)){
+                       context.getCounter("filterReducer","parserError_2").increment(1);
+                       continue;
+                   }
 
                     String desp = parser.getDESCPT();
                     if (Timestamp.valueOf(parser.getSCAN_TIME()).getTime()==maxScanTime){
                         if (checkHaveArrived(desp)){
-//                            context.getCounter(Counter.HAVE_ARRIVED_RECORD_COUNT).increment(1);
+                            context.getCounter("filterReducer","HAVE_ARRIVED_RECORD_COUNT").increment(1);
                         }
                     }
                     String siteId = parser.getSITE_ID();
@@ -183,30 +189,35 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
                         trickTag = firstSolu || secondSolu || thirdSolu;
                     }
 
-                    if (siteId != null && destinationName != null && (!destinationName.equals("") || trickTag)){
-                        if (!name2idMapper.containsKey(destinationName)){
-//                            context.getCounter(Counter.DESTINATION_NAME_NOT_EXIST_COUNT).increment(1);
-                            logger.debug("mapper dont exist, destinationName : {}",destinationName);
-                            continue;
-                        }
+                    if (siteId != null && destinationName != null){
                         String destinationId;
-                        if (trickTag){
+                        if (destinationName.equals("")){
                             destinationId = siteId;
                         }else {
+                            if (!name2idMapper.containsKey(destinationName)){
+                                context.getCounter("filterReducer","name2idmapper error").increment(1);
+                                logger.debug("mapper dont exist, destinationName : {}",destinationName);
+                                continue;
+                            }
                             destinationId = name2idMapper.get(destinationName);
                         }
-//                        context.getCounter(Counter.FILTERED_DATA_COUNT).increment(1);
+//                        if (trickTag){
+//                            destinationId = siteId;
+//                        }else {
+//                            destinationId = name2idMapper.get(destinationName);
+//                        }
+                        context.getCounter("filterReducer","FILTERED_DATA_COUNT").increment(1);
                         Text keyText = new Text();
                         keyText.set(String.format("%s#%s",siteId, destinationId));
-                        context.write(keyText, record);
+                        context.write(keyText, new Text(record));
                     }else{
-//                        context.getCounter(Counter.DIRTY_DATA_COUNT).increment(1);
-                        logger.info("siteId, destination is null, 订单: {}, 数据: {}",parser.getEWB_NO(), record.toString());
+                        context.getCounter("filterReducer","DIRTY_DATA_COUNT").increment(1);
+                        logger.info("siteId, destination is null, 订单: {}, 数据: {}",parser.getEWB_NO(), record);
                         return;
                     }
                 }
             }else{
-//                context.getCounter(Counter.SCAN_TIME_LATER_COUNT).increment(1);
+                context.getCounter("filterReducer","SCAN_TIME_LATER_COUNT").increment(1);
                 return;
             }
         }

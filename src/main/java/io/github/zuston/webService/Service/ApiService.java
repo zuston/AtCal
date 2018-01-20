@@ -2,6 +2,7 @@ package io.github.zuston.webService.Service;
 
 import com.google.gson.Gson;
 import io.github.zuston.webService.Pojo.Site2SitePojo;
+import io.github.zuston.webService.Pojo.TraceInfoPojo;
 import io.github.zuston.webService.Tool.HBaseTool;
 import io.github.zuston.webService.Tool.MysqlTool;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ public class ApiService {
     private Gson gson;
 
     public static final String VALIDATE_TABLE_NAME = "validate";
+
+    public static final String ACTIVE_TRACE = "activeTrace";
 
     public String siteTraceInfo_HBase(){
         List<Site2SitePojo> reslist = new ArrayList<Site2SitePojo>();
@@ -57,7 +60,16 @@ public class ApiService {
     }
 
     // 查找出当前站点的在途订单，再查询订单详情。
-    public String siteInfo(long siteId, int size, int tag) {
-        return "";
+
+    /**
+     *
+     * @param siteId
+     * @param size
+     * @param tag  1 == out , 2 == in
+     * @return
+     */
+    public String siteInfo(long siteId, int size, int tag) throws SQLException {
+        List<List<TraceInfoPojo>> reslist = MysqlTool.Query(ACTIVE_TRACE, siteId, size, tag);
+        return gson.toJson(reslist);
     }
 }

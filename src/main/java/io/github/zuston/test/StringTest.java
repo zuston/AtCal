@@ -1,5 +1,7 @@
 package io.github.zuston.test;
 
+import java.sql.Timestamp;
+
 /**
  * Created by zuston on 2018/1/17.
  */
@@ -21,8 +23,15 @@ public class StringTest {
 //        pline = StringTool.insertOfPrefix(pline,"#","15265", 11);
 //        if (pline.contains("_")) pline = pline.replace("_","#");
 //        System.out.println(pline);
-        System.out.println(pline.substring(0,pline.lastIndexOf("#")));
+        System.out.println(pline.substring(pline.lastIndexOf("#")+1,pline.length()));
 
 //        System.out.println(pline.split("#")[11].equals(""));
+
+
+        long time = 86400000 + Long.valueOf("1510588800000");
+        long time2 = Timestamp.valueOf("2017-11-15 09:00:33").getTime();
+        System.out.println(time);
+        System.out.println(time2);
+        System.out.println((time2-time)/1000/60/60);
     }
 }

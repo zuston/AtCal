@@ -199,7 +199,7 @@ public class Init {
 
             // 连续分析入库
             case ANE :
-                exitCode = ToolRunner.run(new TaskProcess(), options);
+                exitCode = ToolRunner.run(new TaskProcess(), new String[]{args[1]});
                 break;
 
 
@@ -212,6 +212,9 @@ public class Init {
 
     private static String[] getOptions(String[] args) {
         List<String> optionList = new ArrayList<String>();
+        if (args.length==1){
+            return new String[]{};
+        }
         for (int i=1;i<args.length;i++){
             optionList.add(args[i]);
         }

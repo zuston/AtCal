@@ -1,8 +1,6 @@
 package io.github.zuston.task;
 
-import io.github.zuston.Util.HdfsTool;
 import io.github.zuston.task.ActiveTrace.ActiveTrace2Mysql;
-import io.github.zuston.task.ActiveTrace.DistinctActiveTrace;
 import io.github.zuston.task.ActiveTrace.FilterCurrentActiveTrace;
 import io.github.zuston.task.ActiveTrace.Merge2ActiveTrace;
 import io.github.zuston.task.ValidateTraceTime.Validate;
@@ -53,16 +51,16 @@ public class TaskProcess extends Configured implements Tool {
                 defaultv
         };
 
-        String distinctPath = "/A_2_distinct";
-        String [] distinctOpts = new String[]{
-                filterOutputPath,
-                distinctPath,
-                reducerNum
-        };
+//        String distinctPath = "/A_2_distinct";
+//        String [] distinctOpts = new String[]{
+//                filterOutputPath,
+//                distinctPath,
+//                reducerNum
+//        };
 
         String mergePath = "/A_3_merge";
         String [] mergeOpts = new String[] {
-                distinctPath,
+                filterOutputPath,
                 predictTimePath,
                 mergePath,
                 reducerNum
@@ -86,16 +84,16 @@ public class TaskProcess extends Configured implements Tool {
         };
 
         ToolRunner.run(new FilterCurrentActiveTrace(), filterOpts);
-        ToolRunner.run(new DistinctActiveTrace(), distinctOpts);
+//        ToolRunner.run(new DistinctActiveTrace(), distinctOpts);
         ToolRunner.run(new Merge2ActiveTrace(), mergeOpts);
         ToolRunner.run(new ActiveTrace2Mysql(), _2mysqlOpts);
         ToolRunner.run(new Validate(), validateOpts);
 
-        HdfsTool.deleteDir(filterOutputPath);
-        HdfsTool.deleteDir(distinctPath);
-        HdfsTool.deleteDir(mergePath);
-        HdfsTool.deleteDir(mysqlActiveTracePath);
-        HdfsTool.deleteDir(validatePath);
+//        HdfsTool.deleteDir(filterOutputPath);
+//        HdfsTool.deleteDir(distinctPath);
+//        HdfsTool.deleteDir(mergePath);
+//        HdfsTool.deleteDir(mysqlActiveTracePath);
+//        HdfsTool.deleteDir(validatePath);
 
         return 0;
     }
