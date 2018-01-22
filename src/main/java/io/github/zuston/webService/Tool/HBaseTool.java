@@ -1,6 +1,7 @@
 package io.github.zuston.webService.Tool;
 
 import io.github.zuston.webService.Listener.HBaseListener;
+import io.github.zuston.webService.Pojo.TraceInfoPojo;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.*;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by zuston on 2018/1/18.
@@ -21,49 +23,176 @@ public class HBaseTool {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(HBaseTool.class);
 
-    public static void Get(String tableName, String rowKey){
-        HTable table = null;
-        try {
-            table = new HTable(HBaseListener.configuration, tableName);
-            Get scan = new Get(rowKey.getBytes());// 根据rowkey查询
-            Result r = table.get(scan);
-            System.out.println("获得到rowkey:" + new String(r.getRow()));
-            for (KeyValue keyValue : r.raw()) {
-                System.out.println("列：" + new String(keyValue.getFamily())
-                        + "====值:" + new String(keyValue.getValue()));
-            }
-            table.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    public static List<HashMap<String,String>> GetIndex(String tableName, String [] rowKeys) throws IOException {
 
-    public static List<HashMap<String, String>> BatchGet(String tableName, String [] batchList) throws IOException {
-        List<HashMap<String,String>> reslist = new ArrayList<HashMap<String, String>>();
         HTable table = HBaseListener.Container.get(tableName);
         List<Get> conditionRowList = new ArrayList<Get>();
-        for (String batch : batchList){
+        for (String batch : rowKeys){
             Get get = new Get(Bytes.toBytes(batch));
             conditionRowList.add(get);
         }
+        Result[] results = table.get(conditionRowList);
 
-        Result[] results = table.get(conditionRowList);//重点在这，直接查getList<Get>
-        for (Result result : results){
-            HashMap<String, String> hm = new HashMap<String, String>();
-            hm.put("rowkey",new String(result.getRow()));
+        List<HashMap<String,String>> siteIDs = new ArrayList<HashMap<String,String>>();
+        for (Result result : results) {
+            HashMap<String,String> hm = new HashMap<String, String>();
             for (Cell kv : result.rawCells()) {
-                hm.put(new String(kv.getQualifier()),new String(kv.getValue()));
+                if (new String(kv.getQualifier()).equals("index")){
+                    hm.put(new String(result.getRow()),new String(kv.getValue()));
+                }
             }
-            reslist.add(hm);
+            siteIDs.add(hm);
         }
-        return reslist;
+        return siteIDs;
+    }
+
+    public static List<TraceInfoPojo> BatchGet(String tableName, String[] rowkeys) throws IOException {
+        HTable table = HBaseListener.Container.get(tableName);
+        List<Get> conditionRowList = new ArrayList<Get>();
+        for (String batch : rowkeys){
+            Get get = new Get(Bytes.toBytes(batch));
+            conditionRowList.add(get);
+        }
+        Result[] results = table.get(conditionRowList);
+        List<TraceInfoPojo> list = new ArrayList<TraceInfoPojo>();
+        for (Result result : results){
+            TraceInfoPojo pojo = new TraceInfoPojo();
+            for (Cell kv : result.rawCells()) {
+                String key = new String(kv.getQualifier());
+                String value = new String(kv.getValue());
+                if (key.equals("TRACE_ID")){
+                    pojo.setTRACE_ID(value);
+                }
+                if (key.equals("EWB_NO")){
+                    pojo.setEWB_NO(value);
+                }
+                if (key.equals("SITE_ID")){
+                    pojo.setSITE_ID(value);
+                }
+                if (key.equals("SITE_NAME")){
+                    pojo.setSITE_NAME(value);
+                }
+                if (key.equals("SCAN_TIME")){
+                    pojo.setSCAN_TIME(value);
+                }
+                if (key.equals("DEST_SITE_ID")){
+
+                    pojo.setDEST_SITE_ID(value);
+                }
+                if (key.equals("DEST_SITE_NAME")){
+
+                    pojo.setDEST_SITE_NAME(value);
+                }
+                if (key.equals("PREDICT_TIME")){
+                    pojo.setPREDICT_TIME(value);
+                }
+            }
+            list.add(pojo);
+        }
+        return list;
+    }
+
+    public static List<List<TraceInfoPojo>> BatchScan(String tableName, String [] batchList) throws IOException {
+//        List<HashMap<String,String>> reslist = new ArrayList<HashMap<String, String>>();
+//        HTable table = HBaseListener.Container.get(tableName);
+//        List<Get> conditionRowList = new ArrayList<Get>();
+//        for (String batch : batchList){
+//            Get get = new Get(Bytes.toBytes(batch));
+//            conditionRowList.add(get);
+//        }
+//
+//        Result[] results = table.get(conditionRowList);//重点在这，直接查getList<Get>
+//        for (Result result : results){
+//            HashMap<String, String> hm = new HashMap<String, String>();
+//            hm.put("rowkey",new String(result.getRow()));
+//            for (Cell kv : result.rawCells()) {
+//                hm.put(new String(kv.getQualifier()),new String(kv.getValue()));
+//            }
+//            reslist.add(hm);
+//        }
+//        return reslist;
+
+//        private String TRACE_ID        ;
+//        private String EWB_NO 			;
+//        private String SITE_ID			;
+//        private String SITE_NAME		;
+//        private String SCAN_TIME		;
+//        private String DEST_SITE_ID	;
+//        private String DEST_SITE_NAME 	;
+//        private String PREDICT_TIME;
+
+        List<List<TraceInfoPojo>> list = new ArrayList<List<TraceInfoPojo>>();
+
+
+        HTable table = HBaseListener.Container.get(tableName);
+        try {
+            Scan scanner = new Scan();
+
+            scanner.setBatch(2);
+            scanner.setMaxResultSize(10);
+
+            for (String prefix : batchList){
+                scanner.setFilter(new PrefixFilter(prefix.getBytes()));
+                ResultScanner rs = table.getScanner(scanner);
+                HashMap<String, TraceInfoPojo> hm = new HashMap<String, TraceInfoPojo>();
+
+                for (Result result : rs){
+                    String rowKey = new String(result.getRow());
+                    TraceInfoPojo pojo = null;
+                    if (hm.containsKey(rowKey)){
+                        pojo = hm.get(rowKey);
+                    }else{
+                        pojo = new TraceInfoPojo();
+                    }
+                    for (KeyValue keyValue : result.raw()){
+                        String key = new String(keyValue.getQualifier());
+                        String value = new String(keyValue.getValue());
+                        if (key.equals("TRACE_ID")){
+                            pojo.setTRACE_ID(value);
+                        }
+                        if (key.equals("EWB_NO")){
+                            pojo.setEWB_NO(value);
+                        }
+                        if (key.equals("SITE_ID")){
+                            pojo.setSITE_ID(value);
+                        }
+                        if (key.equals("SITE_NAME")){
+                            pojo.setSITE_NAME(value);
+                        }
+                        if (key.equals("SCAN_TIME")){
+                            pojo.setSCAN_TIME(value);
+                        }
+                        if (key.equals("DEST_SITE_ID")){
+
+                            pojo.setDEST_SITE_ID(value);
+                        }
+                        if (key.equals("DEST_SITE_NAME")){
+
+                            pojo.setDEST_SITE_NAME(value);
+                        }
+                        hm.put(rowKey,pojo);
+                    }
+                }
+                List<TraceInfoPojo> groupTrace = new ArrayList<TraceInfoPojo>();
+                for (Map.Entry<String, TraceInfoPojo> entry : hm.entrySet()){
+                    groupTrace.add(entry.getValue());
+                }
+                list.add(groupTrace);
+            }
+
+        }catch (Exception e){
+
+        }
+        return list;
     }
 
 
     // 列表页加载
-    public static List<HashMap<String, String>> ScanByPrefix(String tableName, String rowPrefix, int size) {
-        List<HashMap<String,String>> reslist = new ArrayList<HashMap<String, String>>();
+    public static HashMap<String, String> ScanByPrefix(String tableName, String rowPrefix, int size) {
+//        List<HashMap<String,String>> reslist = new ArrayList<HashMap<String, String>>();
         HTable table = HBaseListener.Container.get(tableName);
+        HashMap<String, String> resHM = new HashMap<String, String>();
+
         try {
             Scan scanner = new Scan();
             scanner.setFilter(new PrefixFilter(rowPrefix.getBytes()));
@@ -72,21 +201,30 @@ public class HBaseTool {
 
             ResultScanner rs = table.getScanner(scanner);
 
+
             for (Result r : rs) {
                 KeyValue[] kv = r.raw();
-                HashMap<String,String> hm = new HashMap<String, String>();
-                hm.put("rowkey",new String(r.getRow()));
+
+//                HashMap<String,String> hm = new HashMap<String, String>();
+//                hm.put("rowkey",new String(r.getRow()));
+
+                String rowkey = new String(r.getRow());
+
                 for (KeyValue keyValue : kv){
-                    hm.put(new String(keyValue.getQualifier()), new String(keyValue.getValue()));
+//                    hm.put(new String(keyValue.getQualifier()), new String(keyValue.getValue()));
+                    if (new String(keyValue.getQualifier()).equals("EWB_NO")){
+                        resHM.put(rowkey,new String(keyValue.getValue()));
+                    }
                 }
-                reslist.add(hm);
-                if (reslist.size() >= size) break;
+//                reslist.add(hm);
+//                if (reslist.size() >= size) break;
+                if (resHM.size()==size) break;
             }
             rs.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return reslist;
+        return resHM;
     }
 
     public static List<HashMap<String, String>> QueryAll(String tableName) throws IOException {

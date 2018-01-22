@@ -29,6 +29,8 @@ public class HBaseListener implements ApplicationListener<ApplicationStartedEven
 
     public static HTable TraceTable;
 
+    public static HTable IndexTable;
+
     public static HashMap<String, HTable> Container = new HashMap<String, HTable>();
 
     @Override
@@ -44,11 +46,13 @@ public class HBaseListener implements ApplicationListener<ApplicationStartedEven
             ActiveTraceInTable = new HTable(configuration,"ActiveRecord_In");
             ValidateTable = new HTable(configuration, "Validate");
             TraceTable = new HTable(configuration, "trace");
+            IndexTable = new HTable(configuration, "index");
 
             Container.put("ActiveRecord_Out", ActiveTraceOutTable);
             Container.put("ActiveRecord_In", ActiveTraceInTable);
             Container.put("Validate", ValidateTable);
             Container.put("trace",TraceTable);
+            Container.put("index",IndexTable);
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -14,13 +14,22 @@ var section = flag.Int("section",7,"the section that you set to get the data, wh
 
 func main(){
 	flag.Parse()
-	commandLine := "hadoop jar /home/hadoop/jobs/AtCal/target/atcal-jar-with-dependencies.jar ane " + *time + " " + strconv.Itoa(*section)
-	execCommand(commandLine)
+	//commandName := "hadoop"
+	//params := []string{"jar",
+	//"/home/hadoop/jobs/AtCal/target/atcal-jar-with-dependencies.jar",
+	//	"ane",
+	//	*time,
+	//	strconv.Itoa(*section),
+	//}
+	commandLine := "hadoop jar /home/hadoop/jobs/AtCal/target/atcal-jar-with-dependencies.jar ane "+*time + " " + strconv.Itoa(*section)
+	commandLine = "git clone https://github.com/puniverse/quasar.git"
+	res := execCommand(commandLine)
+	fmt.Println(res)
 }
 
-func execCommand(commandLine string) bool {
-	cmd := exec.Command("/bin/bash","-c",commandLine)
-
+func execCommand(commandName string) bool {
+	//函数返回一个*Cmd，用于使用给出的参数执行name指定的程序
+	cmd := exec.Command("/bin/bash","-c",commandName)
 	//显示运行的命令
 	fmt.Println(cmd.Args)
 
@@ -45,3 +54,4 @@ func execCommand(commandLine string) bool {
 	cmd.Wait()
 	return true
 }
+

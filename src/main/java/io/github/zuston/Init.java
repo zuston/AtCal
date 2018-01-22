@@ -59,6 +59,8 @@ public class Init {
 
     public static final int ANE = 22;
 
+    public static final int RELATION_INDEX = 23;
+
 
     public static final int HDFS_TEST = 16;
 
@@ -91,6 +93,8 @@ public class Init {
         commandHm.put("validate2mysql".toLowerCase(), V2MYSQL);
 
         commandHm.put("ane", ANE);
+
+        commandHm.put("ri",RELATION_INDEX);
 
         commandHm.put("hdfstest".toLowerCase(), HDFS_TEST);
     }
@@ -202,6 +206,9 @@ public class Init {
                 exitCode = ToolRunner.run(new TaskProcess(), new String[]{args[1]});
                 break;
 
+            case RELATION_INDEX :
+                exitCode = ToolRunner.run(new RelationIndexMr(), options);
+                break;
 
             default:
                 exitCode = 0;

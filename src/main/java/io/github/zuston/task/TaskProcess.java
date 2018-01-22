@@ -1,9 +1,6 @@
 package io.github.zuston.task;
 
-import io.github.zuston.task.ActiveTrace.ActiveTrace2Mysql;
-import io.github.zuston.task.ActiveTrace.DistinctActiveTrace;
-import io.github.zuston.task.ActiveTrace.FilterCurrentActiveTrace;
-import io.github.zuston.task.ActiveTrace.Merge2ActiveTrace;
+import io.github.zuston.task.ActiveTrace.*;
 import io.github.zuston.task.ValidateTraceTime.Validate;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
@@ -38,7 +35,7 @@ public class TaskProcess extends Configured implements Tool {
         String date = args[0];
         String defaultv = (args.length>=2) ? args[1] : "7";
 
-        String reducerNum = "10";
+        String reducerNum = "60";
         String traceInputPath = "/aneInput/hs_opt_trace";
         String predictTimePath = "/aneTrace-with-time-filter";
 
@@ -56,6 +53,13 @@ public class TaskProcess extends Configured implements Tool {
         String [] distinctOpts = new String[]{
                 filterOutputPath,
                 distinctPath,
+                reducerNum
+        };
+
+        String indexPath = "/A_2_1_index";
+        String [] indexOpts = new String[]{
+                distinctPath,
+                indexPath,
                 reducerNum
         };
 
@@ -86,6 +90,7 @@ public class TaskProcess extends Configured implements Tool {
 
         ToolRunner.run(new FilterCurrentActiveTrace(), filterOpts);
         ToolRunner.run(new DistinctActiveTrace(), distinctOpts);
+        ToolRunner.run(new RelationIndexMr(), indexOpts);
         ToolRunner.run(new Merge2ActiveTrace(), mergeOpts);
         ToolRunner.run(new ActiveTrace2Mysql(), _2mysqlOpts);
         ToolRunner.run(new Validate(), validateOpts);
