@@ -45,8 +45,9 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String [] record = value.toString().split("\\t+");
-            String originalSqlRecord = record[1].split("_")[0];
-            String predictTime = record[1].split("_")[1];
+            // 重新定义的地方
+            String originalSqlRecord = record[1].substring(0, record[1].lastIndexOf("#"));
+            String predictTime = record[1].substring(record[1].lastIndexOf("#")+1,record[1].length());
 
             String rowKeyId = record[0].split("#")[0];
             if (context.getConfiguration().get(tableTag).equals(tableTagIn)){

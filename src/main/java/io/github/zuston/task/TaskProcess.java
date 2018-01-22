@@ -78,6 +78,13 @@ public class TaskProcess extends Configured implements Tool {
                 "0"
         };
 
+        String hbaseActiveTracePath = "/A_4_activeTrace2hbase";
+        String [] _2HbaseOpts = new String[]{
+                mergePath,
+                hbaseActiveTracePath,
+                "ActiveRecord_Out"
+        };
+
         String validatePath = "/A_5_validate";
         String currentTime = currentTime();
         String validateTime = date + " " + currentTime.split("\\s")[1];
@@ -92,8 +99,10 @@ public class TaskProcess extends Configured implements Tool {
         ToolRunner.run(new DistinctActiveTrace(), distinctOpts);
         ToolRunner.run(new RelationIndexMr(), indexOpts);
         ToolRunner.run(new Merge2ActiveTrace(), mergeOpts);
-        ToolRunner.run(new ActiveTrace2Mysql(), _2mysqlOpts);
+//        ToolRunner.run(new ActiveTrace2Mysql(), _2mysqlOpts);
+        ToolRunner.run(new ActiveTrace2Hbase(), _2HbaseOpts);
         ToolRunner.run(new Validate(), validateOpts);
+
 
 //        HdfsTool.deleteDir(filterOutputPath);
 //        HdfsTool.deleteDir(distinctPath);
