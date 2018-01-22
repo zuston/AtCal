@@ -45,6 +45,10 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String [] record = value.toString().split("\\t+");
+            if (record[0].split("#").length<=1)    {
+                context.getCounter("ActiveTrace2Hbase","header error").increment(1);
+                return;
+            }
             // 重新定义的地方
             String originalSqlRecord = record[1].substring(0, record[1].lastIndexOf("#"));
             String predictTime = record[1].substring(record[1].lastIndexOf("#")+1,record[1].length());
@@ -81,7 +85,7 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
                     continue;
                 }
             }
-            condition.add(COLUMN_FAMILIY_INFO,Bytes.toBytes("ptime"),Bytes.toBytes(predictTime));
+            condition.add(COLUMN_FAMILIY_INFO,Bytes.toBytes("PREDICT_TIME"),Bytes.toBytes(predictTime));
             context.write(new ImmutableBytesWritable(rowKey), condition);
         }
     }

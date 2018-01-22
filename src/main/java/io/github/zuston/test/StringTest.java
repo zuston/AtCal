@@ -37,5 +37,8 @@ public class StringTest {
         String line = "23#23232#12823283#23#34";
         System.out.println(line.substring(0,line.lastIndexOf("#")));
         System.out.println(line.substring(line.lastIndexOf("#")+1,line.length()));
+
+        String p = "1000014#20119\t2695179681#90000164700740#70#1000014#9415201#丹东分拨中心#20#丹东市#217843#张丽丽#2017-10-10 22:05:04##丹东振安一部#4150301###【丹东市】丹东分拨中心已发出,下一站丹东振安一部##2017-10-10 22:06:02##振安区#4.4##0#丹东市#1##355.2881309172546";
+        System.out.println(p.split("\\t+")[0].split("#")[0]);
     }
 }
