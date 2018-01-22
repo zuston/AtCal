@@ -3,8 +3,10 @@ package io.github.zuston.task.ActiveTrace;
 import io.github.zuston.Util.BulkLoadTool;
 import io.github.zuston.Util.HbaseTool;
 import io.github.zuston.Util.JobGenerator;
+import io.github.zuston.Util.ShellTool;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
@@ -13,6 +15,9 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
@@ -20,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Random;
 
 /**
  * Created by zuston on 2018/1/17.
@@ -37,6 +43,36 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
 
     public static final String tableTag = "tableTag";
     public static final String tableTagIn = "in";
+
+    static class SampleMapper extends Mapper<LongWritable, Text, Text, Text>{
+
+        Random random = new Random();
+
+        @Override
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            String [] record = value.toString().split("\\t+");
+            if (record[0].split("#").length<=1)    {
+                context.getCounter("ActiveTraceSample","header error").increment(1);
+                return;
+            }
+            if (random.nextInt(50)!=0)  return;
+
+            String originalSqlRecord = record[1].substring(0, record[1].lastIndexOf("#"));
+
+            String rowKeyId = record[0].split("#")[0];
+            if (!parser.parser(originalSqlRecord))  return;
+            String rowKeyComponent = String.format("%s#%s", rowKeyId, parser.getEWB_NO());
+
+            context.write(new Text(rowKeyComponent),null);
+        }
+    }
+
+    static class SampleReducer extends Reducer<Text, Text, Text, Text>{
+        @Override
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            context.write(key, null);
+        }
+    }
 
 
     static class AtMapper extends Mapper<LongWritable, Text, ImmutableBytesWritable, Put> {
@@ -90,13 +126,42 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
         }
     }
 
-
+    /**
+     *
+     * @param strings
+     * @return
+     * @throws Exception
+     *
+     * 输入文件
+     * 输出文件
+     * 表名
+     *
+     */
     public int run(String[] strings) throws Exception {
 
-        // 建表
-        HbaseTool htool = new HbaseTool();
-        // ActiveTrace_Out
-        htool.createHbaseTable(strings[2]);
+        String samplePath = "/C_SAMPLE";
+        String [] sampleOpts = new String[]{
+                strings[0],
+                samplePath
+        };
+        sample(sampleOpts);
+
+        String sampleFile = samplePath + "/part-r-00000";
+        String sampleFileLine = ShellTool.exec("hdfs dfs -cat "+sampleFile +" | wc -l");
+        logger.error("采样文件行数 ："+sampleFileLine);
+
+//                * 参数1：分区文件
+//                * 参数2：表名
+//                * 参数3：分区数目
+//                * 参数4：分区表的行数
+        String createHBaseOpts [] = new String[]{
+            samplePath,
+                strings[2],
+                "20",
+                sampleFileLine
+        };
+
+        ToolRunner.run(new HbaseTool(),createHBaseOpts);
 
         logger.error("建表成功");
 
@@ -132,6 +197,23 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
             return;
         }
         this.getConf().set(tableTag, "out");
+    }
+
+
+    private void sample(String [] opts) throws Exception {
+        Job job = new Job(this.getConf());
+        job.setJarByClass(ActiveTrace2Hbase.class);
+        job.setJobName("atSampleCollector");
+        job.setMapperClass(SampleMapper.class);
+        job.setReducerClass(SampleReducer.class);
+
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        FileInputFormat.addInputPath(job, new Path(opts[0]));
+        FileOutputFormat.setOutputPath(job, new Path(opts[1]));
+
+        job.waitForCompletion(true);
     }
 
 }

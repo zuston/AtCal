@@ -1,9 +1,13 @@
 package io.github.zuston.webService.Test;
 
+import io.github.zuston.Util.ListTool;
+import io.github.zuston.webService.Pojo.TraceInfoPojo;
 import io.github.zuston.webService.Tool.HBaseTool;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,36 +15,35 @@ import java.util.Map;
  */
 public class HBaseToolTest {
     public static void main(String[] args) throws IOException {
-//        Configuration configuration;
-//        configuration = HBaseConfiguration.create();
-//        configuration.set("hbase.master", "master:60000");
-//        configuration.set("hbase.zookeeper.quorum","slave4,slave2,slave3");
-//        HTable table = null;
-//        try {
-//            table = new HTable(HBaseListener.configuration, "Validate");
-//            ResultScanner rs = table.getScanner(new Scan());
-//            for (Result r : rs) {
-//                System.out.println(new String(r.getRow()));
-//                for (KeyValue keyValue : r.raw()) {
-//                    System.out.println(new String(keyValue.getKey())+"=="+new String(keyValue.getValueArray()));
-//                }
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            table.close();
-//        }
+        String tableName = "ActiveRecord_Out";
+        int size = 10;
+        String siteId = String.valueOf(15305);
+        HashMap<String, String> res = HBaseTool.ScanByPrefix(tableName, String.valueOf(siteId), size);
 
-        HashMap<String, String> res = HBaseTool.ScanByPrefix("ActiveRecord_Out","15305",10);
-        String [] batchList = new String[res.size()];
-        int count = 0;
+        List<String> ewbList = new ArrayList<String>();
+
+        // 获取全部 ewb_no
         for (Map.Entry<String, String> entry : res.entrySet()){
-            batchList[count] = entry.getValue();
-            count++;
+            ewbList.add(entry.getValue());
         }
-//        List<List<TraceInfoPojo>> list = HBaseTool.BatchGet("trace",batchList);
-//        for (List<TraceInfoPojo> pojos : list){
-//            System.out.println(pojos.get(0).getEWB_NO());
-//        }
+
+        List<List<TraceInfoPojo>> reslist = new ArrayList<List<TraceInfoPojo>>();
+
+        // 获取 ids 的字符串
+        List<HashMap<String,String>> idList = HBaseTool.GetIndex("index", ListTool.list2arr(ewbList));
+
+        for (HashMap<String,String> hashMap : idList){
+            List<String> rowKeyList = new ArrayList<String>();
+            for (Map.Entry<String, String> entry : hashMap.entrySet()){
+                String ewbNo = entry.getKey();
+                String [] siteArr = entry.getValue().split("#");
+                for (String site : siteArr){
+                    rowKeyList.add(site + "#" +ewbNo);
+                }
+            }
+            List<TraceInfoPojo> pojos = HBaseTool.BatchGet(tableName, ListTool.list2arr(rowKeyList));
+            reslist.add(pojos);
+        }
+
     }
 }

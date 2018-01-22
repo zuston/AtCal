@@ -7,7 +7,7 @@ import io.github.zuston.Util.ShellTool;
  */
 public class ShellToolTest {
     public static void main(String[] args) throws Exception {
-        System.out.println(ShellTool.exec("mysql -h 10.10.0.91 -P 3306 -uroot -pshacha -e \"delete from ane.activeTrace\""));
+//        System.out.println(ShellTool.exec("mysql -h 10.10.0.91 -P 3306 -uroot -pshacha -e \"delete from ane.activeTrace\""));
 
 //        String[] cmds = {"/bin/sh", "-c", "mysql -h 10.10.0.91 -P 3306 -uroot -pshacha -e \"delete from ane.activeTrace\""};
 //        Process pro = Runtime.getRuntime().exec(cmds);
@@ -18,5 +18,6 @@ public class ShellToolTest {
 //        while((line = read.readLine())!=null){
 //            System.out.println(line);
 //        }
+        System.out.println(ShellTool.exec("cat /Users/zuston/Desktop/a.txt | tail -n 1"));
     }
 }
