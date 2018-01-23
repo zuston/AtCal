@@ -269,12 +269,12 @@ public class HBaseTool {
     }
 
     public static void get() throws IOException {
-        List<Get> conditionRowList = new ArrayList<Get>();
-        conditionRowList.add(new Get(Bytes.toBytes("90000350700606#19199")));
-
-
-        Result [] results = HBaseListener.ActiveTraceOutTable.get(conditionRowList);//重点在这，直接查getList<Get>
-        System.out.println(results);
+//        List<Get> conditionRowList = new ArrayList<Get>();
+//        conditionRowList.add(new Get(Bytes.toBytes("90000350700606#19199")));
+//
+//
+//        Result [] results = HBaseListener.ActiveTraceOutTable.get(conditionRowList);//重点在这，直接查getList<Get>
+//        System.out.println(results);
     }
 
 }
