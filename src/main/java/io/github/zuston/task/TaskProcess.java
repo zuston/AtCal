@@ -56,11 +56,36 @@ public class TaskProcess extends Configured implements Tool {
                 reducerNum
         };
 
-        String indexPath = "/A_2_1_index";
-        String [] indexOpts = new String[]{
+        String indexPath_OUT = "/A_2_1_index_OUT";
+        String [] indexOpts_OUT = new String[]{
                 distinctPath,
-                indexPath,
-                reducerNum
+                indexPath_OUT,
+                reducerNum,
+                "out"
+        };
+
+        String indexPath_IN = "/A_2_1_index_IN";
+        String [] indexOpts_IN = new String[]{
+                distinctPath,
+                indexPath_IN,
+                reducerNum,
+                "in"
+        };
+
+        String siteIndexPath_OUT = "/A_2_2_siteIndex_OUT";
+        String [] siPathOpts_OUT = new String[]{
+                distinctPath,
+                siteIndexPath_OUT,
+                reducerNum,
+                "out"
+        };
+
+        String siteIndexPath_IN = "/A_2_2_siteIndex_IN";
+        String [] siPathOpts_IN = new String[]{
+                distinctPath,
+                siteIndexPath_IN,
+                reducerNum,
+                "in"
         };
 
         String mergePath = "/A_3_merge";
@@ -78,10 +103,17 @@ public class TaskProcess extends Configured implements Tool {
                 "0"
         };
 
-        String hbaseActiveTracePath = "/A_4_activeTrace2hbase";
-        String [] _2HbaseOpts = new String[]{
+        String hbaseActiveTracePath_OUT = "/A_4_activeTrace2hbase_OUT";
+        String [] _2HbaseOpts_OUT = new String[]{
                 mergePath,
-                hbaseActiveTracePath,
+                hbaseActiveTracePath_OUT,
+                "ActiveRecord_Out"
+        };
+
+        String hbaseActiveTracePath_IN = "/A_4_activeTrace2hbase_IN";
+        String [] _2HbaseOpts_IN = new String[]{
+                mergePath,
+                hbaseActiveTracePath_IN,
                 "ActiveRecord_Out"
         };
 
@@ -95,12 +127,28 @@ public class TaskProcess extends Configured implements Tool {
                 validateTime
         };
 
+        // 前置筛选过滤数据
         ToolRunner.run(new FilterCurrentActiveTrace(), filterOpts);
         ToolRunner.run(new DistinctActiveTrace(), distinctOpts);
-        ToolRunner.run(new RelationIndexMr(), indexOpts);
+
+        // ewb -----> siteID#siteID
+        ToolRunner.run(new RelationIndexMr(), indexOpts_OUT);
+        ToolRunner.run(new RelationIndexMr(), indexOpts_IN);
+
+        // siteID =======> EWB#EWB
+        ToolRunner.run(new SiteIndexMr(), siPathOpts_OUT);
+        ToolRunner.run(new SiteIndexMr(), siPathOpts_IN);
+
+        // 合并预测时间
         ToolRunner.run(new Merge2ActiveTrace(), mergeOpts);
+
 //        ToolRunner.run(new ActiveTrace2Mysql(), _2mysqlOpts);
-        ToolRunner.run(new ActiveTrace2Hbase(), _2HbaseOpts);
+
+        // 链路数据进 hbase
+        ToolRunner.run(new ActiveTrace2Hbase(), _2HbaseOpts_OUT);
+        ToolRunner.run(new ActiveTrace2Hbase(), _2HbaseOpts_IN);
+
+        // 实时异常件反馈
         ToolRunner.run(new Validate(), validateOpts);
 
 

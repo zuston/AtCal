@@ -31,8 +31,6 @@ public class ApiService {
 
     public static final String ACTIVE_TRACE_OUT = "ActiveRecord_Out";
     public static final String ACTIVE_TRACE_IN = "ActiveRecord_In";
-    public static final String INDEX = "index";
-
 
     public String siteTraceInfo_HBase(){
         List<Site2SitePojo> reslist = new ArrayList<Site2SitePojo>();
@@ -83,19 +81,17 @@ public class ApiService {
 
     public String siteInfo_HBase(long siteId, int size, int tag) throws IOException {
         String tableName = tag == 1 ? ACTIVE_TRACE_OUT : ACTIVE_TRACE_IN;
-        HashMap<String, String> res = HBaseTool.ScanByPrefix(tableName, String.valueOf(siteId), size);
 
-        List<String> ewbList = new ArrayList<String>();
+        String siteIndexName = tag==1 ? "siteIndex_Out" : "siteIndex_In";
 
-        // 获取全部 ewb_no
-        for (Map.Entry<String, String> entry : res.entrySet()){
-            ewbList.add(entry.getValue());
-        }
+        String ewbIndexName = tag==1 ? "ewbIndex_Out" : "ewbIndex_In";
+
+        List<String> ewbList = HBaseTool.GetBySiteId(siteIndexName, String.valueOf(siteId), size);
 
         List<List<TraceInfoPojo>> reslist = new ArrayList<List<TraceInfoPojo>>();
 
-        // 获取 ids 的字符串
-        List<HashMap<String,String>> idList = HBaseTool.GetIndex(INDEX, ListTool.list2arr(ewbList));
+        List<HashMap<String,String>> idList = HBaseTool.GetIndex(ewbIndexName, ListTool.list2arr(ewbList));
+        System.out.println(idList);
 
         for (HashMap<String,String> hashMap : idList){
             List<String> rowKeyList = new ArrayList<String>();
@@ -103,13 +99,25 @@ public class ApiService {
                 String ewbNo = entry.getKey();
                 String [] siteArr = entry.getValue().split("#");
                 for (String site : siteArr){
-                    rowKeyList.add(site + "#" +ewbNo);
+                    rowKeyList.add(ewbNo + "#" + site);
                 }
             }
+            System.out.println(rowKeyList);
             List<TraceInfoPojo> pojos = HBaseTool.BatchGet(tableName, ListTool.list2arr(rowKeyList));
             reslist.add(pojos);
         }
 
         return gson.toJson(reslist);
+    }
+
+    // [90000398617399, 90000364566811, 90000363830414, 90000376681049, 90000381827306]
+    public String test() throws IOException {
+//        List<TraceInfoPojo> pojos = HBaseTool.BatchGet("ActiveRecord_Out", new String[]{"19199#90000350700606",
+//                "15304#90000350700606",
+//                "18584#90000350700606",
+//                "15539#90000350700606"
+//        });
+        HBaseTool.get();
+        return "";
     }
 }

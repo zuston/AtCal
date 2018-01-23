@@ -2,6 +2,7 @@ package io.github.zuston;
 
 import io.github.zuston.Util.BulkLoadTool;
 import io.github.zuston.Util.HbaseTool;
+import io.github.zuston.Util.ShellTool;
 import io.github.zuston.basic.Ewb.EwbDataSampleCollector;
 import io.github.zuston.basic.Ewb.EwbImporterMr;
 import io.github.zuston.basic.Trace.OriginalTraceImporterMr;
@@ -61,6 +62,8 @@ public class Init {
 
     public static final int RELATION_INDEX = 23;
 
+    public static final int SITE_ID_INDEX = 24;
+
 
     public static final int HDFS_TEST = 16;
 
@@ -96,7 +99,11 @@ public class Init {
 
         commandHm.put("ri",RELATION_INDEX);
 
+        commandHm.put("si", SITE_ID_INDEX);
+
         commandHm.put("hdfstest".toLowerCase(), HDFS_TEST);
+
+        commandHm.put("test", 100);
     }
 
     public static void main(String[] args) throws Exception {
@@ -208,6 +215,16 @@ public class Init {
 
             case RELATION_INDEX :
                 exitCode = ToolRunner.run(new RelationIndexMr(), options);
+                break;
+
+            case 100 :
+                String line = ShellTool.exec("hdfs dfs -cat /aneOutput/activeTrace/merge_1/part-r-00000 | wc -l");
+                System.out.println(line.split("\\n")[0]);
+                exitCode = 1;
+                break;
+
+            case SITE_ID_INDEX :
+                exitCode = ToolRunner.run(new SiteIndexMr(), options);
                 break;
 
             default:

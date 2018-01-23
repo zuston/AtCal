@@ -29,7 +29,11 @@ public class HBaseListener implements ApplicationListener<ApplicationStartedEven
 
     public static HTable TraceTable;
 
-    public static HTable IndexTable;
+    public static HTable EwbIndexTable_OUT;
+    public static HTable EwbIndexTable_IN;
+
+    public static HTable SiteIndexTable_IN;
+    public static HTable SiteIndexTable_OUT;
 
     public static HashMap<String, HTable> Container = new HashMap<String, HTable>();
 
@@ -46,13 +50,25 @@ public class HBaseListener implements ApplicationListener<ApplicationStartedEven
             ActiveTraceInTable = new HTable(configuration,"ActiveRecord_In");
             ValidateTable = new HTable(configuration, "Validate");
             TraceTable = new HTable(configuration, "trace");
-            IndexTable = new HTable(configuration, "index");
+
+            EwbIndexTable_OUT = new HTable(configuration, "ewbIndex_Out");
+            EwbIndexTable_IN = new HTable(configuration, "ewbIndex_In");
+
+            SiteIndexTable_IN = new HTable(configuration, "siteIndex_In");
+            SiteIndexTable_OUT = new HTable(configuration, "siteIndex_Out");
+
+            Container.put("Validate", ValidateTable);
+            Container.put("trace",TraceTable);
 
             Container.put("ActiveRecord_Out", ActiveTraceOutTable);
             Container.put("ActiveRecord_In", ActiveTraceInTable);
-            Container.put("Validate", ValidateTable);
-            Container.put("trace",TraceTable);
-            Container.put("index",IndexTable);
+
+            Container.put("ewbIndex_Out",EwbIndexTable_OUT);
+            Container.put("ewbIndex_In",EwbIndexTable_IN);
+
+            Container.put("siteIndex_In",SiteIndexTable_IN);
+            Container.put("siteIndex_Out",SiteIndexTable_OUT);
+
 
         } catch (IOException e) {
             e.printStackTrace();

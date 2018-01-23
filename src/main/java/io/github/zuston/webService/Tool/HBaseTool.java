@@ -46,6 +46,44 @@ public class HBaseTool {
         return siteIDs;
     }
 
+    public static List<String> GetIndex(String tableName, String rowkey) throws IOException {
+        HTable table = HBaseListener.Container.get(tableName);
+        Get get = new Get(Bytes.toBytes(rowkey));
+        String ewbNoList = null;
+        Result res = table.get(get);
+        for (Cell kv : res.rawCells()){
+            if (new String(kv.getQualifier()).equals("index")){
+                ewbNoList = new String(kv.getValue());
+            }
+        }
+        List<String> reslist = new ArrayList<String>();
+        for (String ewbNo : ewbNoList.split("#")){
+            reslist.add(ewbNo);
+        }
+        return reslist;
+    }
+
+    public static List<String> GetBySiteId(String tabelName, String siteId, int size) throws IOException {
+        HTable table = HBaseListener.Container.get(tabelName);
+        Get get = new Get(Bytes.toBytes(siteId));
+        String ewbNoList = null;
+        Result res = table.get(get);
+        for (Cell kv : res.rawCells()){
+            if (new String(kv.getQualifier()).equals("index")){
+                ewbNoList = new String(kv.getValue());
+            }
+        }
+        int count = 0;
+        List<String> reslist = new ArrayList<String>();
+        for (String ewbNo : ewbNoList.split("#")){
+            if (count>=size)    break;
+            count ++;
+            reslist.add(ewbNo);
+        }
+        table.close();
+        return reslist;
+    }
+
     public static List<TraceInfoPojo> BatchGet(String tableName, String[] rowkeys) throws IOException {
         HTable table = HBaseListener.Container.get(tableName);
         List<Get> conditionRowList = new ArrayList<Get>();
@@ -93,24 +131,6 @@ public class HBaseTool {
     }
 
     public static List<List<TraceInfoPojo>> BatchScan(String tableName, String [] batchList) throws IOException {
-//        List<HashMap<String,String>> reslist = new ArrayList<HashMap<String, String>>();
-//        HTable table = HBaseListener.Container.get(tableName);
-//        List<Get> conditionRowList = new ArrayList<Get>();
-//        for (String batch : batchList){
-//            Get get = new Get(Bytes.toBytes(batch));
-//            conditionRowList.add(get);
-//        }
-//
-//        Result[] results = table.get(conditionRowList);//重点在这，直接查getList<Get>
-//        for (Result result : results){
-//            HashMap<String, String> hm = new HashMap<String, String>();
-//            hm.put("rowkey",new String(result.getRow()));
-//            for (Cell kv : result.rawCells()) {
-//                hm.put(new String(kv.getQualifier()),new String(kv.getValue()));
-//            }
-//            reslist.add(hm);
-//        }
-//        return reslist;
 
 //        private String TRACE_ID        ;
 //        private String EWB_NO 			;
@@ -247,6 +267,25 @@ public class HBaseTool {
         } finally {
             return reslist;
         }
+    }
+
+    public static void get() throws IOException {
+        List<Get> conditionRowList = new ArrayList<Get>();
+        conditionRowList.add(new Get(Bytes.toBytes("19199#90000350700606")));
+        conditionRowList.add(new Get(Bytes.toBytes("15304#90000350700606")));
+        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
+        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
+
+        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
+
+        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
+
+        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
+        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
+
+
+        Result [] results = HBaseListener.ActiveTraceOutTable.get(conditionRowList);//重点在这，直接查getList<Get>
+        System.out.println(results);
     }
 
 }

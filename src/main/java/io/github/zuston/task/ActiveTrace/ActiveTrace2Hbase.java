@@ -61,9 +61,9 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
 
             String rowKeyId = record[0].split("#")[0];
             if (!parser.parser(originalSqlRecord))  return;
-            String rowKeyComponent = String.format("%s#%s", rowKeyId, parser.getEWB_NO());
+            String rowKeyComponent = String.format("%s#%s", parser.getEWB_NO(), rowKeyId);
 
-            context.write(new Text(rowKeyComponent),null);
+            context.write(new Text(rowKeyComponent),new Text(""));
         }
     }
 
@@ -139,7 +139,7 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
      */
     public int run(String[] strings) throws Exception {
 
-        String samplePath = "/C_SAMPLE";
+        String samplePath = "/C_SAMPLE_"+strings[2];
         String [] sampleOpts = new String[]{
                 strings[0],
                 samplePath
@@ -148,17 +148,17 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
 
         String sampleFile = samplePath + "/part-r-00000";
         String sampleFileLine = ShellTool.exec("hdfs dfs -cat "+sampleFile +" | wc -l");
-        logger.error("采样文件行数 ："+sampleFileLine);
+        logger.error("采样文件行数 ："+sampleFileLine.split("\\n")[0]);
 
 //                * 参数1：分区文件
 //                * 参数2：表名
 //                * 参数3：分区数目
 //                * 参数4：分区表的行数
         String createHBaseOpts [] = new String[]{
-            samplePath,
+                sampleFile,
                 strings[2],
                 "20",
-                sampleFileLine
+                sampleFileLine.split("\\n")[0]
         };
 
         ToolRunner.run(new HbaseTool(),createHBaseOpts);

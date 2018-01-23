@@ -23,50 +23,53 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by zuston on 2018/1/22.
+ * Created by zuston on 2018/1/23.
  */
-// ewb_no --> siteID#siteID#siteID#siteID
-public class RelationIndexMr extends Configured implements Tool{
+// siteID -------> ewbNO#ewbNO#ewbNO#ewbNO#ewbNO#ewbNO
+public class SiteIndexMr extends Configured implements Tool {
 
-    public static final String tableName_Out = "ewbIndex_Out";
-    public static final String tableName_In = "ewbIndex_In";
+    public static final String tableName_IN = "siteIndex_In";
 
-    static class RelationIndexMapper extends Mapper<LongWritable, Text, Text, Text> {
+    public static final String tableName_OUT = "siteIndex_Out";
+
+    static class SiteIndexMapper extends Mapper<LongWritable, Text, Text, Text> {
 
         OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String [] lines = value.toString().split("\\t+");
-            String header = lines[0];
             String record = lines[1];
+            String header = lines[0];
             if (!parser.parser(record) || header.split("#").length!=2){
                 context.getCounter("RelationIndex","parser_error").increment(1);
                 return;
             }
             String tag = context.getConfiguration().get("tag");
             if (tag.equals("in")){
-                context.write(new Text(parser.getEWB_NO()),new Text(header.split("#")[1]));
+                context.write(new Text(header.split("#")[1]), new Text(parser.getEWB_NO()));
                 return;
             }
-            context.write(new Text(parser.getEWB_NO()),new Text(header.split("#")[0]));
+            context.write(new Text(parser.getSITE_ID()),new Text(parser.getEWB_NO()));
         }
     }
 
-    static class RelationIndexReducer extends Reducer<Text, Text, Text, Text> {
+    static class SiteIndexReducer extends Reducer<Text, Text, Text, Text> {
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             List<String> reslist = new ArrayList<String>();
+            int count = 0;
             for (Text value : values){
                 reslist.add(value.toString());
+                if (count >= 100)   break;
+                count ++;
             }
             String indexLine = StringUtils.join(reslist, "#");
             context.write(key,new Text(indexLine));
         }
     }
 
-    // 索引导入 hbase 中
     static final byte[] COLUMN_FAMILIY_INFO = Bytes.toBytes("info");
-    static class RelationIndexImport2Hbase extends Mapper<LongWritable, Text, ImmutableBytesWritable, Put> {
+    static class SiteIndex2HbaseMapper extends Mapper<LongWritable, Text, ImmutableBytesWritable, Put> {
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String [] lines = value.toString().split("\\t+");
@@ -77,23 +80,15 @@ public class RelationIndexMr extends Configured implements Tool{
         }
     }
 
-    /**
-     * 输入文件
-     * 输出文件
-     * reducer 个数
-     * in or out
-     * @param strings
-     * @return
-     * @throws Exception
-     */
+    // 第四个参数 为 in or out
     @Override
     public int run(String[] strings) throws Exception {
         this.getConf().set("tag",strings[3]);
-        String tableName = strings[3].equals("in") ? tableName_In : tableName_Out;
+        String tableName = strings[3].equals("in") ? tableName_IN : tableName_OUT;
         if (!generateIndexHfile(strings)) return -1;
         String [] options = new String[]{
                 strings[1],
-                "/A_INDEX_"+strings[3],
+                "/A_SITE_INDEX_"+strings[3],
                 tableName
         };
         import2HBase(options, tableName);
@@ -102,13 +97,13 @@ public class RelationIndexMr extends Configured implements Tool{
 
     private boolean generateIndexHfile(String[] strings) throws IOException, ClassNotFoundException, InterruptedException {
         Job job = JobGenerator.SimpleJobGenerator(this, this.getConf(), strings);
-        job.setJarByClass(RelationIndexMr.class);
+        job.setJarByClass(SiteIndexMr.class);
 
         job.setMapOutputValueClass(Text.class);
         job.setMapOutputKeyClass(Text.class);
 
-        job.setMapperClass(RelationIndexMapper.class);
-        job.setReducerClass(RelationIndexReducer.class);
+        job.setMapperClass(SiteIndexMapper.class);
+        job.setReducerClass(SiteIndexReducer.class);
 
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
@@ -117,14 +112,14 @@ public class RelationIndexMr extends Configured implements Tool{
         return false;
     }
 
-    private void import2HBase(String [] strings, String tableName) throws IOException {
+    private void import2HBase(String[] strings, String tableName) throws IOException {
         HbaseTool htool = new HbaseTool();
         htool.createHbaseTable(tableName);
         HTable table = null;
         try {
             Job job = JobGenerator.HbaseQuickImportJobGnerator(this, this.getConf(), strings, table);
             job.setJobName("Index2Hbase");
-            job.setMapperClass(RelationIndexImport2Hbase.class);
+            job.setMapperClass(SiteIndex2HbaseMapper.class);
             job.getConfiguration().setStrings("mapreduce.reduce.shuffle.input.buffer.percent", "0.1");
 
             if (job.waitForCompletion(true)) {
