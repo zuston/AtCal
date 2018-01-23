@@ -80,43 +80,34 @@ public class ApiService {
 
 
     public String siteInfo_HBase(long siteId, int size, int tag) throws IOException {
-        String tableName = tag == 1 ? ACTIVE_TRACE_OUT : ACTIVE_TRACE_IN;
+        String tableName = "ActiveRecord";
 
         String siteIndexName = tag==1 ? "siteIndex_Out" : "siteIndex_In";
 
-        String ewbIndexName = tag==1 ? "ewbIndex_Out" : "ewbIndex_In";
+        String ewbIndexName = "ewbIndex";
 
         List<String> ewbList = HBaseTool.GetBySiteId(siteIndexName, String.valueOf(siteId), size);
 
         List<List<TraceInfoPojo>> reslist = new ArrayList<List<TraceInfoPojo>>();
 
         List<HashMap<String,String>> idList = HBaseTool.GetIndex(ewbIndexName, ListTool.list2arr(ewbList));
-        System.out.println(idList);
 
         for (HashMap<String,String> hashMap : idList){
             List<String> rowKeyList = new ArrayList<String>();
             for (Map.Entry<String, String> entry : hashMap.entrySet()){
                 String ewbNo = entry.getKey();
-                String [] siteArr = entry.getValue().split("#");
+                String [] siteArr = entry.getValue().split("%");
                 for (String site : siteArr){
                     rowKeyList.add(ewbNo + "#" + site);
                 }
             }
-            System.out.println(rowKeyList);
             List<TraceInfoPojo> pojos = HBaseTool.BatchGet(tableName, ListTool.list2arr(rowKeyList));
             reslist.add(pojos);
         }
-
         return gson.toJson(reslist);
     }
 
-    // [90000398617399, 90000364566811, 90000363830414, 90000376681049, 90000381827306]
     public String test() throws IOException {
-//        List<TraceInfoPojo> pojos = HBaseTool.BatchGet("ActiveRecord_Out", new String[]{"19199#90000350700606",
-//                "15304#90000350700606",
-//                "18584#90000350700606",
-//                "15539#90000350700606"
-//        });
         HBaseTool.get();
         return "";
     }

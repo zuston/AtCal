@@ -80,7 +80,6 @@ public class HBaseTool {
             count ++;
             reslist.add(ewbNo);
         }
-        table.close();
         return reslist;
     }
 
@@ -271,17 +270,7 @@ public class HBaseTool {
 
     public static void get() throws IOException {
         List<Get> conditionRowList = new ArrayList<Get>();
-        conditionRowList.add(new Get(Bytes.toBytes("19199#90000350700606")));
-        conditionRowList.add(new Get(Bytes.toBytes("15304#90000350700606")));
-        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
-        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
-
-        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
-
-        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
-
-        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
-        conditionRowList.add(new Get(Bytes.toBytes("18584#90000350700606")));
+        conditionRowList.add(new Get(Bytes.toBytes("90000350700606#19199")));
 
 
         Result [] results = HBaseListener.ActiveTraceOutTable.get(conditionRowList);//重点在这，直接查getList<Get>

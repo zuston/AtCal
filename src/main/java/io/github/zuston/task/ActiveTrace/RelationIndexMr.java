@@ -31,6 +31,8 @@ public class RelationIndexMr extends Configured implements Tool{
     public static final String tableName_Out = "ewbIndex_Out";
     public static final String tableName_In = "ewbIndex_In";
 
+    public static final String TABLE = "ewbIndex";
+
     static class RelationIndexMapper extends Mapper<LongWritable, Text, Text, Text> {
 
         OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
@@ -43,12 +45,12 @@ public class RelationIndexMr extends Configured implements Tool{
                 context.getCounter("RelationIndex","parser_error").increment(1);
                 return;
             }
-            String tag = context.getConfiguration().get("tag");
-            if (tag.equals("in")){
-                context.write(new Text(parser.getEWB_NO()),new Text(header.split("#")[1]));
-                return;
-            }
-            context.write(new Text(parser.getEWB_NO()),new Text(header.split("#")[0]));
+//            String tag = context.getConfiguration().get("tag");
+//            if (tag.equals("in")){
+//                context.write(new Text(parser.getEWB_NO()),new Text(header.split("#")[1]));
+//                return;
+//            }
+            context.write(new Text(parser.getEWB_NO()),new Text(parser.getTRACE_ID()));
         }
     }
 
@@ -59,7 +61,7 @@ public class RelationIndexMr extends Configured implements Tool{
             for (Text value : values){
                 reslist.add(value.toString());
             }
-            String indexLine = StringUtils.join(reslist, "#");
+            String indexLine = StringUtils.join(reslist, "%");
             context.write(key,new Text(indexLine));
         }
     }
@@ -81,22 +83,21 @@ public class RelationIndexMr extends Configured implements Tool{
      * 输入文件
      * 输出文件
      * reducer 个数
-     * in or out
      * @param strings
      * @return
      * @throws Exception
      */
     @Override
     public int run(String[] strings) throws Exception {
-        this.getConf().set("tag",strings[3]);
-        String tableName = strings[3].equals("in") ? tableName_In : tableName_Out;
+//        this.getConf().set("tag",strings[3]);
+//        String tableName = strings[3].equals("in") ? tableName_In : tableName_Out;
         if (!generateIndexHfile(strings)) return -1;
         String [] options = new String[]{
                 strings[1],
-                "/A_INDEX_"+strings[3],
-                tableName
+                "/A_ewbINDEX",
+                TABLE
         };
-        import2HBase(options, tableName);
+        import2HBase(options, TABLE);
         return 1;
     }
 

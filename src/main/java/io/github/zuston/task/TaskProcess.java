@@ -60,17 +60,9 @@ public class TaskProcess extends Configured implements Tool {
         String [] indexOpts_OUT = new String[]{
                 distinctPath,
                 indexPath_OUT,
-                reducerNum,
-                "out"
+                reducerNum
         };
 
-        String indexPath_IN = "/A_2_1_index_IN";
-        String [] indexOpts_IN = new String[]{
-                distinctPath,
-                indexPath_IN,
-                reducerNum,
-                "in"
-        };
 
         String siteIndexPath_OUT = "/A_2_2_siteIndex_OUT";
         String [] siPathOpts_OUT = new String[]{
@@ -107,15 +99,15 @@ public class TaskProcess extends Configured implements Tool {
         String [] _2HbaseOpts_OUT = new String[]{
                 mergePath,
                 hbaseActiveTracePath_OUT,
-                "ActiveRecord_Out"
+                "ActiveRecord"
         };
 
-        String hbaseActiveTracePath_IN = "/A_4_activeTrace2hbase_IN";
-        String [] _2HbaseOpts_IN = new String[]{
-                mergePath,
-                hbaseActiveTracePath_IN,
-                "ActiveRecord_In"
-        };
+//        String hbaseActiveTracePath_IN = "/A_4_activeTrace2hbase_IN";
+//        String [] _2HbaseOpts_IN = new String[]{
+//                mergePath,
+//                hbaseActiveTracePath_IN,
+//                "ActiveRecord_In"
+//        };
 
         String validatePath = "/A_5_validate";
         String currentTime = currentTime();
@@ -133,7 +125,6 @@ public class TaskProcess extends Configured implements Tool {
 
         // ewb -----> siteID#siteID
         ToolRunner.run(new RelationIndexMr(), indexOpts_OUT);
-        ToolRunner.run(new RelationIndexMr(), indexOpts_IN);
 
         // siteID =======> EWB#EWB
         ToolRunner.run(new SiteIndexMr(), siPathOpts_OUT);
@@ -146,11 +137,9 @@ public class TaskProcess extends Configured implements Tool {
 
         // 链路数据进 hbase
         ToolRunner.run(new ActiveTrace2Hbase(), _2HbaseOpts_OUT);
-        ToolRunner.run(new ActiveTrace2Hbase(), _2HbaseOpts_IN);
 
         // 实时异常件反馈
         ToolRunner.run(new Validate(), validateOpts);
-
 
 //        HdfsTool.deleteDir(filterOutputPath);
 //        HdfsTool.deleteDir(distinctPath);
