@@ -60,6 +60,9 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
             String originalSqlRecord = record[1].substring(0, record[1].lastIndexOf("#"));
 
             String rowKeyId = record[0].split("#")[0];
+            if (context.getConfiguration().get(tableTag).equals(tableTagIn)){
+                rowKeyId = record[0].split("#")[1];
+            }
             if (!parser.parser(originalSqlRecord))  return;
             String rowKeyComponent = String.format("%s#%s", parser.getEWB_NO(), rowKeyId);
 
@@ -103,7 +106,7 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
             }
             // 出发地+订单号  out
             // 目的地+订单号  in
-            String rowKeyComponent = String.format("%s#%s", rowKeyId, parser.getEWB_NO());
+            String rowKeyComponent = String.format("%s#%s", parser.getEWB_NO(), rowKeyId);
 
             byte[] rowKey = Bytes.toBytes(rowKeyComponent);
             Put condition = new Put(rowKey);
@@ -139,6 +142,8 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
      */
     public int run(String[] strings) throws Exception {
 
+        transferConf(strings[2]);
+
         String samplePath = "/C_SAMPLE_"+strings[2];
         String [] sampleOpts = new String[]{
                 strings[0],
@@ -168,7 +173,6 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
         // 生成数据
         HTable table = null;
         try {
-            transferConf(strings[2]);
             Job job = JobGenerator.HbaseQuickImportJobGnerator(this, this.getConf(),strings, table);
             job.setJobName("ActiveTrace2Hbase-"+strings[2]);
             job.setMapperClass(AtMapper.class);

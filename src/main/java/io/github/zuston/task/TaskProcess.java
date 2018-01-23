@@ -114,7 +114,7 @@ public class TaskProcess extends Configured implements Tool {
         String [] _2HbaseOpts_IN = new String[]{
                 mergePath,
                 hbaseActiveTracePath_IN,
-                "ActiveRecord_Out"
+                "ActiveRecord_In"
         };
 
         String validatePath = "/A_5_validate";
