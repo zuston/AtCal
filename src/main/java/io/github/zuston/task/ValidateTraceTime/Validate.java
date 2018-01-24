@@ -1,6 +1,9 @@
 package io.github.zuston.task.ValidateTraceTime;
 
-import io.github.zuston.Util.*;
+import io.github.zuston.Util.BulkLoadTool;
+import io.github.zuston.Util.HbaseTool;
+import io.github.zuston.Util.JobGenerator;
+import io.github.zuston.Util.ShellTool;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
@@ -20,6 +23,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by zuston on 2018/1/17.
@@ -64,13 +71,16 @@ public class Validate extends Configured implements Tool {
             String record = "";
             long minV = Long.MAX_VALUE;
 
+            List<OrderEntity> traceList = new ArrayList<OrderEntity>();
+
             for (Text value : values){
                 String [] recordList = value.toString().split("\\t");
                 String line = recordList[1];
                 String originalRecord = line.substring(0, line.lastIndexOf("#"));
                 if(!parser.parser(originalRecord)) {
                     context.getCounter("validate","parser error").increment(1);
-                    continue;
+                    // continue; 防止丢失，return
+                    return;
                 }
                 String scanTime = parser.getSCAN_TIME();
                 long timestamp = Timestamp.valueOf(scanTime).getTime();
@@ -78,6 +88,21 @@ public class Validate extends Configured implements Tool {
                     record = value.toString();
                     minV = settingTimeStamp - timestamp;
                 }
+
+                // 校验：trace 的完整性
+                String site_name = parser.getSITE_NAME();
+                String des_site_name = parser.getDEST_SITE_NAME();
+                String desp = parser.getDESCPT();
+                String site_id = parser.getSITE_ID();
+                String scan_time = parser.getSCAN_TIME();
+
+                OrderEntity orderEntity = new OrderEntity(scan_time, site_name, des_site_name, desp, site_id);
+                traceList.add(orderEntity);
+            }
+
+            if (!checkTrace(traceList))  {
+                context.getCounter("ValidateSort","traceError").increment(1);
+                return;
             }
 
             if (minV == Long.MAX_VALUE)     return;
@@ -99,6 +124,23 @@ public class Validate extends Configured implements Tool {
             context.write(new Text(recordList[0]),new IntWritable(valueComponent));
         }
 
+        private boolean checkTrace(List<OrderEntity> traceList) {
+            Collections.sort(traceList, new Comparator<OrderEntity>() {
+                public int compare(OrderEntity o1, OrderEntity o2) {
+                    return (int) (Timestamp.valueOf(o1.getScan_time()).getTime() - Timestamp.valueOf(o2.getScan_time()).getTime());
+                }
+            });
+
+            for (int i=1;i<traceList.size();i++){
+                OrderEntity start = traceList.get(i-1);
+                OrderEntity end = traceList.get(i);
+                String startLineDesp = start.getDesp();
+                String endLineSiteName = end.getSite_name();
+                if (!startLineDesp.contains(endLineSiteName))   return false;
+
+            }
+            return true;
+        }
     }
 
     static class MergeMapper extends Mapper<LongWritable, Text, Text, IntWritable>{

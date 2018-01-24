@@ -91,11 +91,13 @@ public class Merge2ActiveTrace extends Configured implements Tool {
         public void reduce(FilterPair key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             Iterator<Text> iterator = values.iterator();
             Text predictData = iterator.next();
+            // TODO: 2018/1/24
             if (predictData.toString().split("#").length!=1){
-//                context.getCounter(COUNTER.MERGE_ERROR).increment(1);
+                context.getCounter("Merge2ActiveTrace","MERGE_ERROR").increment(1);
                 return;
             }
             String [] array = predictData.toString().split(":");
+            //  均值，方差，样本总量
             String time = array[0];
             String count = array[2];
             String var = array[1];
@@ -105,7 +107,7 @@ public class Merge2ActiveTrace extends Configured implements Tool {
             while (iterator.hasNext()){
                 Text value = iterator.next();
                 if (value.toString().split("#").length==1){
-//                    context.getCounter(COUNTER.MERGE_ERROR).increment(1);
+                    context.getCounter("Merge2ActiveTrace","MERGE_ERROR_To_End").increment(1);
                     return;
                 }
                 context.write(new Text(value.toString()+"#"+predictTime),null);

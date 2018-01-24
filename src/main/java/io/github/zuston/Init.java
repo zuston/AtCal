@@ -8,6 +8,7 @@ import io.github.zuston.basic.Ewb.EwbImporterMr;
 import io.github.zuston.basic.Trace.OriginalTraceImporterMr;
 import io.github.zuston.basic.Trace.TraceDataSampleCollector;
 import io.github.zuston.basic.TraceTime.*;
+import io.github.zuston.check.CheckValidate;
 import io.github.zuston.task.ActiveTrace.*;
 import io.github.zuston.task.TaskProcess;
 import io.github.zuston.task.ValidateTraceTime.Validate;
@@ -67,6 +68,8 @@ public class Init {
 
     public static final int HDFS_TEST = 16;
 
+    public static final int CHECK_VALIDATE = 25;
+
     static {
         commandHm.put("order", ORDER_NUMBER);
         commandHm.put("trace", TRACE_NUMBER);
@@ -104,6 +107,8 @@ public class Init {
         commandHm.put("hdfstest".toLowerCase(), HDFS_TEST);
 
         commandHm.put("test", 100);
+
+        commandHm.put("cv", CHECK_VALIDATE);
     }
 
     public static void main(String[] args) throws Exception {
@@ -225,6 +230,10 @@ public class Init {
 
             case SITE_ID_INDEX :
                 exitCode = ToolRunner.run(new SiteIndexMr(), options);
+                break;
+
+            case CHECK_VALIDATE :
+                exitCode = ToolRunner.run(new CheckValidate(), options);
                 break;
 
             default:

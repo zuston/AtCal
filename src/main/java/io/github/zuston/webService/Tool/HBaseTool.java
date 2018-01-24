@@ -113,17 +113,17 @@ public class HBaseTool {
                     pojo.setSCAN_TIME(value);
                 }
                 if (key.equals("DEST_SITE_ID")){
-
                     pojo.setDEST_SITE_ID(value);
                 }
                 if (key.equals("DEST_SITE_NAME")){
-
                     pojo.setDEST_SITE_NAME(value);
                 }
                 if (key.equals("PREDICT_TIME")){
                     pojo.setPREDICT_TIME(value);
                 }
             }
+            if (pojo.getDEST_SITE_ID()==null)   pojo.setDEST_SITE_ID("");
+            if (pojo.getDEST_SITE_NAME()==null) pojo.setDEST_SITE_NAME("");
             list.add(pojo);
         }
         return list;
