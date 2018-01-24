@@ -155,4 +155,12 @@ public class TaskProcess extends Configured implements Tool {
         return df.format(new Date());// new Date()为获取当前系统时间
     }
 
+
+    public static void main(String[] args) {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+        String a = df.format(new Date());// new Date()为获取当前系统时间
+        String validateTime = "2017-10-10" + " " + a.split("\\s")[1];
+        System.out.println(validateTime);
+    }
+
 }

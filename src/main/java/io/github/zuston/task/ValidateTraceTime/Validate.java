@@ -136,7 +136,8 @@ public class Validate extends Configured implements Tool {
                 OrderEntity end = traceList.get(i);
                 String startLineDesp = start.getDesp();
                 String endLineSiteName = end.getSite_name();
-                if (!startLineDesp.contains(endLineSiteName))   return false;
+                // 过滤掉第一条trace，只是会显示揽件信息
+                if (!startLineDesp.contains("已揽件") && !startLineDesp.contains(endLineSiteName))   return false;
 
             }
             return true;
