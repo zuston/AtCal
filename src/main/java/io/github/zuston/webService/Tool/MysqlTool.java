@@ -21,7 +21,7 @@ public class MysqlTool {
     public static List<Site2SitePojo> QueryAll(String tableName) throws SQLException {
         Connection connection = MysqlUtil.getInstance();
         Statement statement = connection.createStatement();
-        String sql = "select * from " + tableName + " where total-abnormal > 20 and total > 100";    //要执行的SQL
+        String sql = "select * from " + tableName + " where total-abnormal > 20 and total > 100 order by total DESC limit 200;";    //要执行的SQL
         ResultSet rs = statement.executeQuery(sql);//创建数据对象
         List<Site2SitePojo> reslist = new ArrayList<Site2SitePojo>();
         while (rs.next()){

@@ -119,7 +119,7 @@ public class Validate extends Configured implements Tool {
             boolean normalTag = true;
 //            if (recordTime + ptime * 1000 * 60 > settingTimeStamp)  normalTag = false;
 
-            // TODO: 2018/1/25  
+            // TODO: 2018/1/25
             if (settingTimeStamp-recordTime > ptime * 60 *1000) normalTag = false;
 
             int valueComponent = ((normalTag ? 0 : 1));
