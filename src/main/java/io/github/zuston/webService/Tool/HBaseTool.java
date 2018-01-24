@@ -121,6 +121,9 @@ public class HBaseTool {
                 if (key.equals("PREDICT_TIME")){
                     pojo.setPREDICT_TIME(value);
                 }
+                if (key.equals("DESCPT")){
+                    pojo.setDESCPT(value);
+                }
             }
             if (pojo.getDEST_SITE_ID()==null)   pojo.setDEST_SITE_ID("");
             if (pojo.getDEST_SITE_NAME()==null) pojo.setDEST_SITE_NAME("");

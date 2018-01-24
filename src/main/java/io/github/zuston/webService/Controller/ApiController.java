@@ -31,8 +31,8 @@ public class ApiController {
         return apiService.siteInfo_HBase(siteId, size, tag);
     }
 
-    @RequestMapping(value = "/test", method = RequestMethod.GET)
-    public String test() throws IOException {
-        return apiService.test();
+    @RequestMapping(value = "/traceInfo", method = RequestMethod.GET)
+    public String test(@RequestParam("ewb")String id) throws IOException {
+        return apiService.traceInfo(id);
     }
 }

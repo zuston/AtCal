@@ -11,10 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * Created by zuston on 2018/1/18.
@@ -107,8 +105,30 @@ public class ApiService {
         return gson.toJson(reslist);
     }
 
+
     public String test() throws IOException {
         HBaseTool.get();
         return "";
+    }
+
+    public String traceInfo(String id) throws IOException {
+        List<HashMap<String,String>> idList = HBaseTool.GetIndex("ewbIndex", new String[]{String.valueOf(id)});
+        List<String> rowKeyList = new ArrayList<String>();
+
+        for (Map.Entry<String, String> entry : idList.get(0).entrySet()){
+            String ewbNo = entry.getKey();
+            String [] siteArr = entry.getValue().split("%");
+            for (String site : siteArr){
+                rowKeyList.add(ewbNo + "#" + site);
+            }
+        }
+        List<TraceInfoPojo> pojos = HBaseTool.BatchGet("ActiveRecord", ListTool.list2arr(rowKeyList));
+        Collections.sort(pojos, new Comparator<TraceInfoPojo>() {
+            @Override
+            public int compare(TraceInfoPojo o1, TraceInfoPojo o2) {
+                return (int) (Timestamp.valueOf(o1.getSCAN_TIME()).getTime() - Timestamp.valueOf(o2.getSCAN_TIME()).getTime());
+            }
+        });
+        return gson.toJson(pojos);
     }
 }

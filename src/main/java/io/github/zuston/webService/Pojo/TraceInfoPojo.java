@@ -12,6 +12,7 @@ public class TraceInfoPojo {
     private String DEST_SITE_ID	;
     private String DEST_SITE_NAME 	;
     private String PREDICT_TIME;
+    private String DESCPT;
 
     public TraceInfoPojo(String TRACE_ID, String EWB_NO, String SITE_ID, String SITE_NAME, String SCAN_TIME, String DEST_SITE_ID, String DEST_SITE_NAME, String PREDICT_TIME) {
         this.TRACE_ID = TRACE_ID;
@@ -51,6 +52,15 @@ public class TraceInfoPojo {
 
     public void setSITE_NAME(String SITE_NAME) {
         this.SITE_NAME = SITE_NAME;
+    }
+
+    public void setDESCPT(String DESCPT) {
+        this.DESCPT = DESCPT;
+    }
+
+    public String getDESCPT() {
+
+        return DESCPT;
     }
 
     public void setSCAN_TIME(String SCAN_TIME) {
