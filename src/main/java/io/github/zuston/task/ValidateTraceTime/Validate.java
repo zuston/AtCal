@@ -117,7 +117,10 @@ public class Validate extends Configured implements Tool {
             long recordTime = Timestamp.valueOf(scanTime).getTime();
 
             boolean normalTag = true;
-            if (recordTime + ptime * 1000 * 60 > settingTimeStamp)  normalTag = false;
+//            if (recordTime + ptime * 1000 * 60 > settingTimeStamp)  normalTag = false;
+
+            // TODO: 2018/1/25  
+            if (settingTimeStamp-recordTime > ptime * 60 *1000) normalTag = false;
 
             int valueComponent = ((normalTag ? 0 : 1));
             context.getCounter("validate","VALIDATE_LINE_COUNT").increment(1);
@@ -344,5 +347,15 @@ public class Validate extends Configured implements Tool {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        long time1 = Timestamp.valueOf("2017-10-10 02:27:18").getTime();
+        long time2 = Timestamp.valueOf("2017-10-11 00:15:00").getTime();
+
+
+        double time3 = Double.valueOf("1579.2");
+        System.out.println((time2-time1)/1000/60/60);
+        System.out.println(time3/60);
     }
 }
