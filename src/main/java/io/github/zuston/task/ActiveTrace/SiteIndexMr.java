@@ -2,6 +2,7 @@ package io.github.zuston.task.ActiveTrace;
 
 import io.github.zuston.util.BulkLoadTool;
 import io.github.zuston.util.HbaseTool;
+import io.github.zuston.util.HdfsTool;
 import io.github.zuston.util.JobGenerator;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.commons.lang.StringUtils;
@@ -85,13 +86,15 @@ public class SiteIndexMr extends Configured implements Tool {
     public int run(String[] strings) throws Exception {
         this.getConf().set("tag",strings[3]);
         String tableName = strings[3].equals("in") ? tableName_IN : tableName_OUT;
+        String hFilePath = "/temp/A_siteIndex_"+strings[3];
         if (!generateIndexHfile(strings)) return -1;
         String [] options = new String[]{
                 strings[1],
-                "/A_SITE_INDEX_"+strings[3],
+                hFilePath,
                 tableName
         };
         import2HBase(options, tableName);
+        HdfsTool.deleteDir(hFilePath);
         return 1;
     }
 

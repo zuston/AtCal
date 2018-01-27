@@ -151,7 +151,8 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
 
         transferConf(strings[2]);
 
-        String samplePath = "/C_SAMPLE_"+strings[2];
+        String samplePath = "/temp/C_activeRecord_Sample_" + strings[2];
+
         String [] sampleOpts = new String[]{
                 strings[0],
                 samplePath
@@ -176,6 +177,8 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
         ToolRunner.run(new HbaseTool(),createHBaseOpts);
 
         logger.error("建表成功");
+
+        HdfsTool.deleteDir(samplePath);
 
         // 生成数据
         HTable table = null;
