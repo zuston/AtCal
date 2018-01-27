@@ -71,9 +71,9 @@ public class Init {
     public static final int CHECK_VALIDATE = 25;
 
     // ============================================================
-    public static final int _FILRER = 200;
+    public static final int _EXTRACT = 200;
     public static final int _PREDICT = 201;
-    public static final int _VALIDATE = 202;
+    public static final int _VERIFY = 202;
 
     static {
         commandHm.put("order", ORDER_NUMBER);
@@ -117,26 +117,25 @@ public class Init {
         commandHm.put("cv", CHECK_VALIDATE);
 
         // 分步骤拆分计算
-        commandHm.put("filter", _FILRER);
+        commandHm.put("extract", _EXTRACT);
         commandHm.put("predict", _PREDICT);
-        commandHm.put("verify", _VALIDATE);
+        commandHm.put("verify", _VERIFY);
     }
 
     public static void main(String[] args) throws Exception {
 
         String commandOption = args[0].toLowerCase();
         String reducerNum = args.length<=3 ? "1" : args[3];
-        String [] newArgs =  new String[]{args[1], args[2], reducerNum};
 
-
-
+        // 老代码的参数生成，自带 reduce 数目
+        String [] oldOptions = getOptions(args, reducerNum);
         String [] options = getOptions(args);
 
         int exitCode;
         switch (commandHm.get(commandOption)){
 
             case ORDER_NUMBER :
-                exitCode = ToolRunner.run(new OrderTimeMr(), newArgs);
+                exitCode = ToolRunner.run(new OrderTimeMr(), oldOptions);
                 break;
             case TRACE_NUMBER :
                 String [] opts =  new String[]{args[1], args[2], reducerNum};
@@ -145,19 +144,19 @@ public class Init {
 
             // 分析过后的 trace 时间数据
             case TRACE_IMPORT_NUMBER :
-                exitCode = ToolRunner.run(HBaseConfiguration.create(), new TraceCalculateTimeImporterMr(), newArgs);
+                exitCode = ToolRunner.run(HBaseConfiguration.create(), new TraceCalculateTimeImporterMr(), oldOptions);
                 break;
 
             case SITE_2_NAME :
-                exitCode = ToolRunner.run(new SiteId2NameMr(), newArgs);
+                exitCode = ToolRunner.run(new SiteId2NameMr(), oldOptions);
                 break;
 
             case SITE_2_NAME_IMP :
-                exitCode = ToolRunner.run(HBaseConfiguration.create(), new MetaSiteImporterMr(), newArgs);
+                exitCode = ToolRunner.run(HBaseConfiguration.create(), new MetaSiteImporterMr(), oldOptions);
                 break;
 
             case TRACE_COMPAR :
-                exitCode = ToolRunner.run(new TraceTimeComparsionMr(), newArgs);
+                exitCode = ToolRunner.run(new TraceTimeComparsionMr(), oldOptions);
                 break;
 
             case FILTER :
@@ -166,15 +165,15 @@ public class Init {
                 break;
 
             case IMPTRACE :
-                exitCode = ToolRunner.run(HBaseConfiguration.create(), new OriginalTraceImporterMr(), newArgs);
+                exitCode = ToolRunner.run(HBaseConfiguration.create(), new OriginalTraceImporterMr(), oldOptions);
                 break;
 
             case IMPEWB :
-                exitCode = ToolRunner.run(HBaseConfiguration.create(), new EwbImporterMr(), newArgs);
+                exitCode = ToolRunner.run(HBaseConfiguration.create(), new EwbImporterMr(), oldOptions);
                 break;
 
             case EWB_SAMPLE :
-                exitCode = ToolRunner.run(new EwbDataSampleCollector(), newArgs);
+                exitCode = ToolRunner.run(new EwbDataSampleCollector(), oldOptions);
                 break;
 
             case CREATE_TABLE :
@@ -188,7 +187,7 @@ public class Init {
                 break;
 
             case TRACE_SAMPLE :
-                exitCode = ToolRunner.run(new TraceDataSampleCollector(), newArgs);
+                exitCode = ToolRunner.run(new TraceDataSampleCollector(), oldOptions);
                 break;
 
 
@@ -247,7 +246,7 @@ public class Init {
                 exitCode = ToolRunner.run(new CheckValidate(), options);
                 break;
 
-            case _FILRER :
+            case _EXTRACT :
                 exitCode = new TaskProcess().taskFirst(options);
                 break;
 
@@ -255,7 +254,7 @@ public class Init {
                 exitCode = new TaskProcess().taskSecond(options);
                 break;
 
-            case _VALIDATE :
+            case _VERIFY :
                 exitCode = new TaskProcess().taskThird(options);
                 break;
 
@@ -264,6 +263,16 @@ public class Init {
                 break;
         }
         System.exit(exitCode);
+    }
+
+    private static String[] getOptions(String[] args, String reducerNum) {
+        String [] opts = getOptions(args);
+        String [] oldOpts = new String[opts.length+1];
+        for (int i=0;i<opts.length;i++){
+            oldOpts[i] = opts[i];
+        }
+        oldOpts[opts.length] = reducerNum;
+        return oldOpts;
     }
 
     private static String[] getOptions(String[] args) {
