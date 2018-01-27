@@ -22,6 +22,7 @@ public class FileTool {
 
     public static String getSimpleDirName(String parentPath){
         File parentFile = new File(parentPath);
+        if (!parentFile.exists())   return null;
         File[] tempList = parentFile.listFiles();
         if (tempList.length == 1 && tempList[0].isDirectory()){
             return  tempList[0].getName();
@@ -32,6 +33,7 @@ public class FileTool {
     public static List<String> getDirNames(String parentPath){
         List<String> dirList = new ArrayList<String>();
         File parentFile = new File(parentPath);
+        if (!parentFile.exists())   return null;
         File[] tempList = parentFile.listFiles();
         for (File temp : tempList){
             if (temp.isDirectory()) dirList.add(temp.getName());
@@ -57,6 +59,6 @@ public class FileTool {
 //        boolean a = createDir("tmp/2017-10-10");
 //        delete(new File("tmp"));
         System.out.println();
-        getDirNames("tmp");
+        if (getSimpleDirName("tmp")==null) System.out.println("文件不存在");
     }
 }

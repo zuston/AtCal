@@ -66,16 +66,16 @@ public class TaskProcess extends Configured implements Tool {
         List<String> tagList = FileTool.getDirNames(actOrderPath);
         // 校验下面没有标记位
         if (i==1){
-            if (tagList.size()==0)  return true;
+            if (tagList == null || tagList.size()==0)  return true;
             return false;
         }
         // 执行到第二步时候，第一步的标记位需要有
         if (i==2){
-            if (tagList.size()==1 && tagList.get(0).equals("1"))    return true;
+            if (tagList !=null && tagList.size()==1 && tagList.get(0).equals("1"))    return true;
             return false;
         }
         if (i==3){
-            if (tagList.size()==2 && tagList.contains("1") && tagList.contains("2"))    return true;
+            if (tagList != null && tagList.size()==2 && tagList.contains("1") && tagList.contains("2"))    return true;
             return false;
         }
         return false;
