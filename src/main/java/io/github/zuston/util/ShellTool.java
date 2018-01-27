@@ -1,4 +1,4 @@
-package io.github.zuston.Util;
+package io.github.zuston.util;
 
 import java.io.BufferedReader;
 import java.io.File;

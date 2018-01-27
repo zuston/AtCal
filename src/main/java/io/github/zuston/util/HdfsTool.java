@@ -1,10 +1,8 @@
-package io.github.zuston.Util;
+package io.github.zuston.util;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,5 +69,33 @@ public class HdfsTool {
         fs.delete(new Path(dir), true);
         fs.close();
         return true;
+    }
+
+    public static boolean mkdir(String path) throws IOException {
+        if (StringUtils.isBlank(path))  return false;
+        Configuration conf = new Configuration();
+        path = HDFS_URL + path;
+        FileSystem fs = FileSystem.get(URI.create(path),conf);
+        if (!fs.exists(new Path(path))) return false;
+        fs.mkdirs(new Path(path));
+        fs.close();
+        return true;
+    }
+
+    public static String getDirName(String parentDir) throws IOException {
+        if (StringUtils.isBlank(parentDir))  return null;
+        Configuration conf = new Configuration();
+        parentDir = HDFS_URL + parentDir;
+        FileSystem fs = FileSystem.get(URI.create(parentDir),conf);
+        FileStatus[] fileStatuses = fs.listStatus(new Path(parentDir));
+        Path [] paths = FileUtil.stat2Paths(fileStatuses);
+        for (Path path : paths){
+            System.out.println(path);
+        }
+        return null;
+    }
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        mkdir("/D/A_SITE_INDEX_in");
     }
 }

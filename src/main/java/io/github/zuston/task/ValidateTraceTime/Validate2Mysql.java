@@ -1,7 +1,7 @@
 package io.github.zuston.task.ValidateTraceTime;
 
-import io.github.zuston.Util.JobGenerator;
-import io.github.zuston.Util.ShellTool;
+import io.github.zuston.util.JobGenerator;
+import io.github.zuston.util.ShellTool;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;

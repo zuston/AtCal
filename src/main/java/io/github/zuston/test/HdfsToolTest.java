@@ -1,6 +1,6 @@
 package io.github.zuston.test;
 
-import io.github.zuston.Util.HdfsTool;
+import io.github.zuston.util.HdfsTool;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;

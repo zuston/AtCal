@@ -1,6 +1,6 @@
 package io.github.zuston.test;
 
-import io.github.zuston.Util.ShellTool;
+import io.github.zuston.util.ShellTool;
 
 /**
  * Created by zuston on 2018/1/19.

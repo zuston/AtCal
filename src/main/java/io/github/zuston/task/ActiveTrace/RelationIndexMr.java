@@ -1,8 +1,8 @@
 package io.github.zuston.task.ActiveTrace;
 
-import io.github.zuston.Util.BulkLoadTool;
-import io.github.zuston.Util.HbaseTool;
-import io.github.zuston.Util.JobGenerator;
+import io.github.zuston.util.BulkLoadTool;
+import io.github.zuston.util.HbaseTool;
+import io.github.zuston.util.JobGenerator;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configured;

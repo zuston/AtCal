@@ -1,8 +1,8 @@
 package io.github.zuston;
 
-import io.github.zuston.Util.BulkLoadTool;
-import io.github.zuston.Util.HbaseTool;
-import io.github.zuston.Util.ShellTool;
+import io.github.zuston.util.BulkLoadTool;
+import io.github.zuston.util.HbaseTool;
+import io.github.zuston.util.ShellTool;
 import io.github.zuston.basic.Ewb.EwbDataSampleCollector;
 import io.github.zuston.basic.Ewb.EwbImporterMr;
 import io.github.zuston.basic.Trace.OriginalTraceImporterMr;
@@ -70,6 +70,11 @@ public class Init {
 
     public static final int CHECK_VALIDATE = 25;
 
+    // ============================================================
+    public static final int _FILRER = 200;
+    public static final int _PREDICT = 201;
+    public static final int _VALIDATE = 202;
+
     static {
         commandHm.put("order", ORDER_NUMBER);
         commandHm.put("trace", TRACE_NUMBER);
@@ -98,6 +103,7 @@ public class Init {
 
         commandHm.put("validate2mysql".toLowerCase(), V2MYSQL);
 
+        // 连续一套计算
         commandHm.put("ane", ANE);
 
         commandHm.put("ri",RELATION_INDEX);
@@ -109,6 +115,11 @@ public class Init {
         commandHm.put("test", 100);
 
         commandHm.put("cv", CHECK_VALIDATE);
+
+        // 分步骤拆分计算
+        commandHm.put("filter", _FILRER);
+        commandHm.put("predict", _PREDICT);
+        commandHm.put("verify", _VALIDATE);
     }
 
     public static void main(String[] args) throws Exception {
@@ -234,6 +245,18 @@ public class Init {
 
             case CHECK_VALIDATE :
                 exitCode = ToolRunner.run(new CheckValidate(), options);
+                break;
+
+            case _FILRER :
+                exitCode = new TaskProcess().taskFirst(options);
+                break;
+
+            case _PREDICT :
+                exitCode = new TaskProcess().taskSecond(options);
+                break;
+
+            case _VALIDATE :
+                exitCode = new TaskProcess().taskThird(options);
                 break;
 
             default:

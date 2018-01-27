@@ -1,6 +1,6 @@
 package io.github.zuston.example;
 
-import io.github.zuston.Util.JobGenerator;
+import io.github.zuston.util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;

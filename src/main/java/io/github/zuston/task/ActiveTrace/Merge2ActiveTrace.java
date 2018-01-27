@@ -20,6 +20,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Random;
 
 
 enum COUNTER {
@@ -87,6 +88,8 @@ public class Merge2ActiveTrace extends Configured implements Tool {
 
     static class Merge2ActiveTraceReducer extends Reducer<FilterPair, Text, Text, Text>{
 
+        Random random = new Random();
+
         @Override
         public void reduce(FilterPair key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             Iterator<Text> iterator = values.iterator();
@@ -114,10 +117,11 @@ public class Merge2ActiveTrace extends Configured implements Tool {
             }
         }
 
-        // 评估预测
+        // 评估预测，加上一个随机扰动
         private double predictAlg(String time, String count, String var) {
-//            return Double.valueOf(time) + believeValue * Math.sqrt(Double.parseDouble(var)) / Math.sqrt(Double.parseDouble(count));
-            return Double.valueOf(time) + believeValue * Math.sqrt(Double.parseDouble(var));
+            Integer randomDisturbance = random.nextInt(10);
+            return Double.valueOf(time) + believeValue * Math.sqrt(Double.parseDouble(var)) / Math.sqrt(Double.parseDouble(count)) + randomDisturbance;
+//            return Double.valueOf(time) + believeValue * Math.sqrt(Double.parseDouble(var));
         }
     }
 

@@ -1,8 +1,9 @@
 package io.github.zuston.task.ActiveTrace;
 
+import io.github.zuston.util.HdfsTool;
+import io.github.zuston.util.JobGenerator;
+import io.github.zuston.util.StringTool;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
-import io.github.zuston.Util.HdfsTool;
-import io.github.zuston.Util.JobGenerator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.LongWritable;
@@ -16,7 +17,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 
 enum Counter {
@@ -64,15 +68,14 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            context.getCounter("FilterAt","TotalCount").increment(1);
             if (!parser.parser(value.toString())) return;
             String scan_time = parser.getSCAN_TIME();
             long timestamp = Timestamp.valueOf(scan_time).getTime();
             if (!activeTraceFilter(timestamp))   {
-//                context.getCounter(Counter.DEBUG_TAG_COUNT).increment(1);
                 return;
             }
             String ewbNo = parser.getEWB_NO();
-//            context.getCounter(Counter.GET_RECORD_COUNT).increment(1);
             context.write(new Text(ewbNo), value);
         }
 
@@ -214,7 +217,7 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
 //                        }else {
 //                            destinationId = name2idMapper.get(destinationName);
 //                        }
-                        context.getCounter("filterReducer","FILTERED_DATA_COUNT").increment(1);
+                        context.getCounter("FilterAt","FilteredCount").increment(1);
                         Text keyText = new Text();
                         keyText.set(String.format("%s#%s",siteId, destinationId));
                         context.write(keyText, new Text(record));
@@ -290,9 +293,26 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        return job.waitForCompletion(true) ? 0 : 1;
-
+        if (job.waitForCompletion(true)){
+            getCounter(job);
+            return 0;
+        }else {
+            return 1;
+        }
     }
+
+    private void getCounter(Job job) throws IOException {
+        org.apache.hadoop.mapreduce.Counter totalCountCounter = job.getCounters().findCounter("FilterAt","TotalCount");
+        org.apache.hadoop.mapreduce.Counter filterCountCounter = job.getCounters().findCounter("FilterAt","FilteredCount");
+        long total = totalCountCounter.getValue();
+        long filtered = filterCountCounter.getValue();
+        String outLine = StringTool.component('=',20);
+        System.out.println(outLine);
+        System.out.println(String.format("数据量条目数总计： %s",total));
+        System.out.println(String.format("当前在途条目数总计：%s", filtered));
+        System.out.println(outLine);
+    }
+
 
     private void checkDate(String settingDate) {
         // TODO: 2018/1/15 check 

@@ -1,4 +1,4 @@
-package io.github.zuston.Util;
+package io.github.zuston.util;
 
 /**
  * Created by zuston on 2018/1/18.
@@ -16,5 +16,11 @@ public class StringTool {
         }
         count += prefix.length() * prefixIndex;
         return new StringBuilder(record).insert(count, insertValue).toString();
+    }
+
+    public static String component(char c, int i) {
+        StringBuilder builder = new StringBuilder();
+        while (--i>0)   builder.append(c);
+        return builder.toString();
     }
 }

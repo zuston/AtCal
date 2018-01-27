@@ -1,9 +1,6 @@
 package io.github.zuston.task.ActiveTrace;
 
-import io.github.zuston.Util.BulkLoadTool;
-import io.github.zuston.Util.HbaseTool;
-import io.github.zuston.Util.JobGenerator;
-import io.github.zuston.Util.ShellTool;
+import io.github.zuston.util.*;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -202,7 +199,16 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
         }finally {
             if (table!=null)    table.close();
         }
+        // 为了演示所用
+        outputNotifyInfo();
         return 0;
+    }
+
+    private void outputNotifyInfo() {
+        String outLine = StringTool.component('=',30);
+        System.out.println(outLine);
+        System.out.println("各站点间时间预测分析已完成");
+        System.out.println(outLine);
     }
 
     private void transferConf(String tableName) {

@@ -1,6 +1,6 @@
 package io.github.zuston.basic.Trace;
 
-import io.github.zuston.Util.JobGenerator;
+import io.github.zuston.util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;

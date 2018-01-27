@@ -1,8 +1,8 @@
 package io.github.zuston.task.ActiveTrace;
 
-import io.github.zuston.Util.JobGenerator;
-import io.github.zuston.Util.ShellTool;
-import io.github.zuston.Util.StringTool;
+import io.github.zuston.util.JobGenerator;
+import io.github.zuston.util.ShellTool;
+import io.github.zuston.util.StringTool;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.LongWritable;

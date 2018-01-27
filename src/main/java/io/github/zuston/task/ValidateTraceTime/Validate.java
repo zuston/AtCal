@@ -1,9 +1,6 @@
 package io.github.zuston.task.ValidateTraceTime;
 
-import io.github.zuston.Util.BulkLoadTool;
-import io.github.zuston.Util.HbaseTool;
-import io.github.zuston.Util.JobGenerator;
-import io.github.zuston.Util.ShellTool;
+import io.github.zuston.util.*;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
@@ -13,9 +10,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
@@ -151,6 +146,7 @@ public class Validate extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String [] vlist = value.toString().split("\\s+");
+            context.getCounter("ValidateMerge","Total").increment(1);
             context.write(new Text(vlist[0]), new IntWritable(Integer.valueOf(vlist[1])));
         }
     }
@@ -164,7 +160,9 @@ public class Validate extends Configured implements Tool {
                 count++;
                 nonormal += v.get();
             }
-//            if (nonormal > 0)   context.getCounter(Counter.NO_NORMAL_COUNT).increment(1);
+            if (nonormal > 0)   context.getCounter("ValidateMerge","AbnormalCount").increment(1);
+
+
             context.write(key,new Text(count+"#"+nonormal));
         }
     }
@@ -207,9 +205,9 @@ public class Validate extends Configured implements Tool {
      */
     public int run(String[] args) throws Exception {
 
-        String middlePath = "/B_1_validateFilter";
-        String hfilePath = "/B_2_hfileGener";
-        String mysqlFilePath = "/B_2_mysqlGener";
+        String middlePath = "/temp/B_1_validateFilter";
+        String hfilePath = "/temp/B_2_hfileGener";
+        String mysqlFilePath = "/temp/B_2_mysqlGener";
 
         String [] validateOptions = new String[]{
                 args[0],
@@ -217,7 +215,7 @@ public class Validate extends Configured implements Tool {
                 args[2]
         };
         String [] mergeOptions = new String[]{
-            middlePath,
+                middlePath,
                 args[1],
                 args[2]
         };
@@ -243,27 +241,41 @@ public class Validate extends Configured implements Tool {
         this.getConf().set(CONTEXT_TIME_TAG, String.valueOf(Timestamp.valueOf(args[3]).getTime()));
         try {
             validateJob(validateOptions);
-            mergeJob(mergeOptions);
+            List<Long> countList = mergeJob(mergeOptions);
 
             // 导入到 HBASE 中
 //            createHbaseTable(tableName);
 //            generateHfile(hfileOptions);
 //            bulkLoad(bulkloadOptions);
-//            HdfsTool.deleteDir(middlePath);
 //            HdfsTool.deleteDir(hfilePath);
 
             // 生成 mysql 可用文件
             mysqlHandler(mysqlHandlerOptions);
             // 导入到 mysql 中
             import2Mysql(mysqlFilePath);
+
             // 删除中间文件
-//            HdfsTool.deleteDir(mysqlFilePath);
+            HdfsTool.deleteDir(mysqlFilePath);
+            HdfsTool.deleteDir(middlePath);
+
+            outputInfo(countList);
 
         }catch (Exception e){
             e.printStackTrace();
         }
-
+        // 演示显示所用
         return 0;
+    }
+
+    private void outputInfo(List<Long> countList) {
+        long total = countList.get(0);
+        long abnormal = countList.get(1);
+        String outline = StringTool.component('=',30);
+        System.out.println(outline);
+        System.out.println(String.format("实时物流链路计算完成"));
+        System.out.println(String.format("总计链路数目： %s", total));
+        System.out.println(String.format("不正常链路数目： %s",abnormal));
+        System.out.println(outline);
     }
 
     private void validateJob(String [] opts) throws Exception {
@@ -276,13 +288,14 @@ public class Validate extends Configured implements Tool {
         validateJob.setOutputKeyClass(Text.class);
         validateJob.setOutputValueClass(IntWritable.class);
         if (validateJob.waitForCompletion(true)){
-            logger.error("validate JOB SUCCES");
+            logger.error("validate JOB SUCCESS");
         }else {
             throw new Exception("validateJob error");
         }
     }
 
-    private void mergeJob(String [] opts) throws Exception {
+    private List<Long> mergeJob(String [] opts) throws Exception {
+        List<Long> jobCounterList = new ArrayList<Long>();
         Job mergeJob = JobGenerator.SimpleJobGenerator(this, this.getConf(), opts);
         mergeJob.setJarByClass(Validate.class);
         mergeJob.setMapperClass(MergeMapper.class);
@@ -292,7 +305,12 @@ public class Validate extends Configured implements Tool {
         mergeJob.setOutputKeyClass(Text.class);
         mergeJob.setOutputValueClass(Text.class);
         if (mergeJob.waitForCompletion(true)){
-            logger.error("merge JOB SUCCES");
+            logger.error("merge JOB SUCCESS");
+            org.apache.hadoop.mapreduce.Counter totalCounter = mergeJob.getCounters().findCounter("ValidateMerge","Total");
+            org.apache.hadoop.mapreduce.Counter abnormalCounter = mergeJob.getCounters().findCounter("ValidateMerge","AbnormalCount");
+            jobCounterList.add(totalCounter.getValue());
+            jobCounterList.add(abnormalCounter.getValue());
+            return jobCounterList;
         }else {
             throw  new Exception("merge job is error");
         }
@@ -349,13 +367,4 @@ public class Validate extends Configured implements Tool {
         }
     }
 
-    public static void main(String[] args) {
-        long time1 = Timestamp.valueOf("2017-10-10 02:27:18").getTime();
-        long time2 = Timestamp.valueOf("2017-10-11 00:15:00").getTime();
-
-
-        double time3 = Double.valueOf("1579.2");
-        System.out.println((time2-time1)/1000/60/60);
-        System.out.println(time3/60);
-    }
 }
