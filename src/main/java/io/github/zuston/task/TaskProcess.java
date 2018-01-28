@@ -180,9 +180,10 @@ public class TaskProcess extends Configured implements Tool {
     private void resetOrder() {
         String order1 = actOrderPath + "/1";
         String order2 = actOrderPath + "/2";
+        String cacheDate  = cacheFilePath + "/date";
         FileTool.delete(new File(order1));
         FileTool.delete(new File(order2));
-
+        FileTool.delete(new File(cacheDate));
     }
 
 

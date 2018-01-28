@@ -1,16 +1,24 @@
 #!/bin/bash
 
-while getopts "a:bc" arg #选项后面的冒号表示该选项需要参数
+jarPath=/home/hadoop/jobs/AtCal/target/atcal-jar-with-dependencies.jar
+
+while getopts "e:pvh" arg
 do
         case $arg in
-             a)
-                echo "a's arg:$OPTARG" #参数存在$OPTARG中
+             e)
+                hadoop jar $jarPath extract $OPTARG
                 ;;
-             b)
-                echo "b"
+             p)
+                hadoop jar $jarPath predict
                 ;;
-             c)
-                echo "c"
+             v)
+                hadoop jar $jarPath verify
+                ;;
+             h)
+                echo "-e    extract, with your setting date like '2017-10-10'"
+                echo "-p    predict, following the extract step"
+                echo "-v    verify , following the predict step"
+                echo "-h    help"
                 ;;
              ?)  #当有不认识的选项的时候arg为?
             echo "unkonw argument"
