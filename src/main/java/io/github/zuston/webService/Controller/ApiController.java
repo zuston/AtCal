@@ -27,8 +27,13 @@ public class ApiController {
     }
 
     @RequestMapping(value = "/siteinfo", method = RequestMethod.GET)
-    public String siteInfo(@RequestParam("siteId")long siteId, @RequestParam("size")int size, @RequestParam("tag")int tag) throws SQLException, IOException {
-        return apiService.siteInfo_HBase(siteId, size, tag);
+    public String siteInfo(@RequestParam("siteId")long siteId, @RequestParam("size")int size, @RequestParam("tag")int tag, @RequestParam("page")int page) throws SQLException, IOException {
+        return apiService.siteInfo_HBase(siteId, size, tag, page);
+    }
+
+    @RequestMapping(value = "/targetinfo", method = RequestMethod.GET)
+    public String targetInfo(@RequestParam("siteId")long siteId) throws IOException, SQLException {
+        return apiService.targetInfo(siteId);
     }
 
     @RequestMapping(value = "/traceInfo", method = RequestMethod.GET)

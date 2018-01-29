@@ -11,10 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by zuston on 2018/1/18.
@@ -63,7 +60,7 @@ public class HBaseTool {
         return reslist;
     }
 
-    public static List<String> GetBySiteId(String tabelName, String siteId, int size) throws IOException {
+    public static List<String> GetBySiteId(String tabelName, String siteId, int size, int page) throws IOException {
         HTable table = HBaseListener.Container.get(tabelName);
         Get get = new Get(Bytes.toBytes(siteId));
         String ewbNoList = null;
@@ -75,13 +72,52 @@ public class HBaseTool {
         }
         int count = 0;
         List<String> reslist = new ArrayList<String>();
-        for (String ewbNo : ewbNoList.split("#")){
-            if (count>=size)    break;
-            count ++;
-            reslist.add(ewbNo);
+        String [] ewbArr = ewbNoList.split("#");
+        for (int i=(page-1)*size;i<size;i++){
+            reslist.add(ewbArr[i]);
         }
+//        for (String ewbNo : ewbNoList.split("#")){
+//            if (count>=size)    break;
+//            count ++;
+//            reslist.add(ewbNo);
+//        }
         return reslist;
     }
+
+    // 获取某个站点订单总量
+    public static List<Long> GetEwbCount(String siteId) throws IOException {
+        List<Long> reslist = new ArrayList<Long>();
+        Get get = new Get(Bytes.toBytes(siteId));
+        HTable outTable = HBaseListener.Container.get("siteIndex_Out");
+        HTable inTable = HBaseListener.Container.get("siteIndex_In");
+
+        String outLine = null;
+        Result outRes = outTable.get(get);
+        for (Cell kv : outRes.rawCells()){
+            if (new String(kv.getQualifier()).equals("index")){
+                outLine = new String(kv.getValue());
+            }
+        }
+
+        String inLine = null;
+        Result inRes = inTable.get(get);
+        for (Cell kv : inRes.rawCells()){
+            if (new String(kv.getQualifier()).equals("index")){
+                inLine = new String(kv.getValue());
+            }
+        }
+
+        if (inLine!=null && outLine!=null){
+            reslist.add(Long.valueOf(inLine.split("#").length));
+            reslist.add(Long.valueOf(outLine.split("#").length));
+            return reslist;
+        }
+        return null;
+//        if (inLine!=null) return inLine.split("#").length;
+//        if (outLine != null)    return outLine.split("#").length;
+//        return 0;
+    }
+
 
     public static List<TraceInfoPojo> BatchGet(String tableName, String[] rowkeys) throws IOException {
         HTable table = HBaseListener.Container.get(tableName);

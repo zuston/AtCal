@@ -89,4 +89,36 @@ public class MysqlTool {
         }
         return reslist;
     }
+
+    public static List<String> GetTargetInfo(String targetId) throws SQLException {
+        List<String> reslist = new ArrayList<String>();
+        Connection connection = MysqlUtil.getInstance();
+        Statement statement = connection.createStatement();
+//        String outSql = "select sum(*) from validate where start_id = "+targetId;
+//        String inSql = "select sum(*) from validate where end_id = "+ targetId;
+        String abnormalSql = "select sum(abnormal) from validate where start_id = "+ targetId + " or end_id = " + targetId;
+
+//        ResultSet outRes = statement.executeQuery(outSql);
+//        while (outRes.next()){
+//            reslist.add(outRes.getString(1));
+//        }
+//        outRes.close();
+
+//        ResultSet inRes = statement.executeQuery(inSql);
+//        while (inRes.next()){
+//            reslist.add(inRes.getString(1));
+//        }
+//        inRes.close();
+        reslist.add("0");
+        reslist.add("1");
+
+        ResultSet abnormalRes = statement.executeQuery(abnormalSql);
+        while (abnormalRes.next()){
+            reslist.add(abnormalRes.getString(1));
+        }
+        abnormalRes.close();
+
+        statement.close();
+        return reslist;
+    }
 }

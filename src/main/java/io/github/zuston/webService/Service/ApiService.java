@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import io.github.zuston.util.ListTool;
 import io.github.zuston.webService.Pojo.Site2SitePojo;
 import io.github.zuston.webService.Pojo.TraceInfoPojo;
+import io.github.zuston.webService.Pojo.targetInfoPojo;
 import io.github.zuston.webService.Tool.HBaseTool;
 import io.github.zuston.webService.Tool.MysqlTool;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,14 +78,14 @@ public class ApiService {
     }
 
 
-    public String siteInfo_HBase(long siteId, int size, int tag) throws IOException {
+    public String siteInfo_HBase(long siteId, int size, int tag, int page) throws IOException {
         String tableName = "ActiveRecord";
 
         String siteIndexName = tag==1 ? "siteIndex_Out" : "siteIndex_In";
 
         String ewbIndexName = "ewbIndex";
 
-        List<String> ewbList = HBaseTool.GetBySiteId(siteIndexName, String.valueOf(siteId), size);
+        List<String> ewbList = HBaseTool.GetBySiteId(siteIndexName, String.valueOf(siteId), size, page);
 
         List<List<TraceInfoPojo>> reslist = new ArrayList<List<TraceInfoPojo>>();
 
@@ -130,5 +131,17 @@ public class ApiService {
             }
         });
         return gson.toJson(pojos);
+    }
+
+    public String targetInfo(long siteId) throws IOException, SQLException {
+        targetInfoPojo pojo = new targetInfoPojo();
+        pojo.settingData = "2017-10-10";
+        List<Long> ewbCountList = HBaseTool.GetEwbCount(String.valueOf(siteId));
+        List<String> validateList = MysqlTool.GetTargetInfo(String.valueOf(siteId));
+        pojo.traveCount = (ewbCountList.get(0) + ewbCountList.get(1));
+        pojo.outCount = String.valueOf(ewbCountList.get(0));
+        pojo.inCount  = String.valueOf(ewbCountList.get(1));
+        pojo.delayCount = validateList.get(2);
+        return gson.toJson(pojo);
     }
 }
