@@ -6,7 +6,7 @@ import redis.clients.jedis.Jedis;
  * Created by zuston on 2018/1/30.
  */
 public class RedisTool {
-    public static Jedis jedis = new Jedis("localhost");
+    public static Jedis jedis = new Jedis("10.10.0.91",6379);
 
     public static int getInt(String id){
         if (jedis.exists(id)){
@@ -30,5 +30,10 @@ public class RedisTool {
 
     public static boolean delete(String key){
         return jedis.del(key) >= 1 ? true : false;
+    }
+
+    public static void main(String[] args) {
+        jedis.set("hello","world");
+        System.out.println(jedis.get("hello"));
     }
 }
