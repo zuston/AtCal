@@ -33,7 +33,8 @@ public class Delay2Hbase extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text text, Context context){
             try {
-                String [] splitArr = key.toString().split("&");
+                String lineKey = text.toString().split("\\t")[0];
+                String [] splitArr = lineKey.toString().split("&");
                 String ewbNo = splitArr[1];
                 String start_id = splitArr[0].split("#")[0];
                 String end_id = splitArr[0].split("#")[1];
@@ -42,6 +43,7 @@ public class Delay2Hbase extends Configured implements Tool {
                 }
                 context.write(new Text(start_id),new Text(ewbNo));
             }catch (Exception e){
+                context.getCounter("Delay2Hbase","SPLIT_ERROR").increment(1);
                 return;
             }
         }
