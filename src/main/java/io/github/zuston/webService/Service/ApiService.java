@@ -146,7 +146,7 @@ public class ApiService {
         else return null;
         List<Long> ewbCountList = HBaseTool.GetEwbCount(String.valueOf(siteId));
 //        List<String> validateList = MysqlTool.GetTargetInfo(String.valueOf(siteId));
-        pojo.traveCount = (ewbCountList.get(0) + ewbCountList.get(1));
+        pojo.traveCount = ewbCountList.get(2);
         pojo.outCount = String.valueOf(ewbCountList.get(0));
         pojo.inCount  = String.valueOf(ewbCountList.get(1));
 //        pojo.delayCount = validateList.get(2);

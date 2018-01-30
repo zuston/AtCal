@@ -2,7 +2,7 @@
 
 jarPath=/home/hadoop/jobs/AtCal/target/atcal-jar-with-dependencies.jar
 
-while getopts "e:pvh" arg
+while getopts "e:pvha:" arg
 do
         case $arg in
              e)
@@ -14,10 +14,15 @@ do
              v)
                 hadoop jar $jarPath verify
                 ;;
+             a) hadoop jar $jarPath extract $OPTARG
+                hadoop jar $jarPath predict
+                hadoop jar $jarPath verify
+                ;;
              h)
                 echo "-e    extract, with your setting date like '2017-10-10'"
                 echo "-p    predict, following the extract step"
                 echo "-v    verify , following the predict step"
+                echo "-a    all step , act the 3 steps, with your setting date like '2017-10-10'"
                 echo "-h    help"
                 ;;
              ?)  #当有不认识的选项的时候arg为?

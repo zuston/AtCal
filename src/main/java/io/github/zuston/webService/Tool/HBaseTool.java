@@ -11,10 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by zuston on 2018/1/18.
@@ -108,6 +105,8 @@ public class HBaseTool {
         HTable outTable = HBaseListener.Container.get("siteIndex_Out");
         HTable inTable = HBaseListener.Container.get("siteIndex_In");
 
+        Set<String> container = new HashSet<String>();
+
         String outLine = null;
         Result outRes = outTable.get(get);
         for (Cell kv : outRes.rawCells()){
@@ -115,6 +114,7 @@ public class HBaseTool {
                 outLine = new String(kv.getValue());
             }
         }
+
 
         String inLine = null;
         Result inRes = inTable.get(get);
@@ -124,9 +124,13 @@ public class HBaseTool {
             }
         }
 
+
         if (inLine!=null && outLine!=null){
             reslist.add(Long.valueOf(inLine.split("#").length));
             reslist.add(Long.valueOf(outLine.split("#").length));
+            container.addAll(Arrays.asList(outLine.split("#")));
+            container.addAll(Arrays.asList(inLine.split("#")));
+            reslist.add(Long.valueOf(container.size()));
             return reslist;
         }
         return null;

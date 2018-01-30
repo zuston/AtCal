@@ -1,10 +1,10 @@
 package io.github.zuston.task.ActiveTrace;
 
+import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import io.github.zuston.util.BulkLoadTool;
 import io.github.zuston.util.HbaseTool;
 import io.github.zuston.util.HdfsTool;
 import io.github.zuston.util.JobGenerator;
-import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
@@ -20,8 +20,8 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by zuston on 2018/1/23.
@@ -57,14 +57,14 @@ public class SiteIndexMr extends Configured implements Tool {
     static class SiteIndexReducer extends Reducer<Text, Text, Text, Text> {
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            List<String> reslist = new ArrayList<String>();
+            Set<String> container = new HashSet<String>();
             int count = 0;
             for (Text value : values){
-                reslist.add(value.toString());
+                container.add(value.toString());
 //                if (count >= 100)   break;
                 count ++;
             }
-            String indexLine = StringUtils.join(reslist, "#");
+            String indexLine = StringUtils.join(container, "#");
             context.write(key,new Text(indexLine));
         }
     }
