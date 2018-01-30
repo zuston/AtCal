@@ -11,7 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by zuston on 2018/1/18.
@@ -82,6 +85,20 @@ public class HBaseTool {
 //            reslist.add(ewbNo);
 //        }
         return reslist;
+    }
+
+    public static String GetDelayCount(String siteId) throws IOException {
+        Get get = new Get(Bytes.toBytes(siteId));
+        HTable table = HBaseListener.Container.get("delayIndex");
+        Result result = table.get(get);
+        String resline = null;
+        for (Cell kv : result.rawCells()){
+            if (new String(kv.getQualifier()).equals("index")){
+                resline = new String(kv.getValue());
+            }
+        }
+        if (resline==null)  return null;
+        return String.valueOf(resline.split("#").length);
     }
 
     // 获取某个站点订单总量

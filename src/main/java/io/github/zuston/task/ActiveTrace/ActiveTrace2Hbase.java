@@ -110,7 +110,7 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
             // 出发地+订单号  out
             // 目的地+订单号  in
 //            String startId = record[0].split("#")[0];
-//            String endId = record[0].split("#")[1];
+            String endId = record[0].split("#")[1];
 //            String rowKeyComponent = String.format("%s#%s#%s", parser.getEWB_NO(), startId, endId);
 
             String rowKeyComponent = String.format("%s#%s", parser.getEWB_NO(), parser.getTRACE_ID());
@@ -124,6 +124,8 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
                     field.setAccessible(true);
                     String fieldValue = (String) field.get(parser);
                     String fieldName = field.getName();
+                    // 填充 end_id
+                    if (fieldValue.equals("") && fieldName.equals("DEST_SITE_ID") && endId!=null)  fieldValue=endId;
                     if (fieldValue.equals(""))  continue;
                     condition.add(COLUMN_FAMILIY_INFO,Bytes.toBytes(fieldName),Bytes.toBytes(fieldValue));
                 } catch (IllegalAccessException e) {

@@ -119,7 +119,8 @@ public class Validate extends Configured implements Tool {
 
             int valueComponent = ((normalTag ? 0 : 1));
             context.getCounter("validate","VALIDATE_LINE_COUNT").increment(1);
-            context.write(new Text(recordList[0]),new IntWritable(valueComponent));
+                // 带上 ewbNo 便于延迟订单做筛选
+                context.write(new Text(recordList[0]+"&"+key.toString()),new IntWritable(valueComponent));
         }
 
         private boolean checkTrace(List<OrderEntity> traceList) {
@@ -147,7 +148,8 @@ public class Validate extends Configured implements Tool {
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String [] vlist = value.toString().split("\\s+");
             context.getCounter("ValidateMerge","Total").increment(1);
-            context.write(new Text(vlist[0]), new IntWritable(Integer.valueOf(vlist[1])));
+            // 拆分出 ewbNo
+            context.write(new Text(vlist[0].split("&")[0]), new IntWritable(Integer.valueOf(vlist[1])));
         }
     }
 
@@ -205,15 +207,24 @@ public class Validate extends Configured implements Tool {
      */
     public int run(String[] args) throws Exception {
 
-        String middlePath = "/temp/B_1_validateFilter";
-        String hfilePath = "/temp/B_2_hfileGener";
-        String mysqlFilePath = "/temp/B_2_mysqlGener";
+        String middlePath = "/temp/C_1_validateFilter";
+        String hfilePath = "/temp/C_2_hfileGener";
+        String mysqlFilePath = "/temp/C_2_mysqlGener";
+
+        String delayFilePath = "/temp/C_delayIndex_Master_File";
 
         String [] validateOptions = new String[]{
                 args[0],
                 middlePath,
                 args[2]
         };
+
+        String [] delay2hbaseOpts = new String[]{
+                middlePath,
+                delayFilePath,
+                args[2]
+        };
+
         String [] mergeOptions = new String[]{
                 middlePath,
                 args[1],
@@ -241,6 +252,9 @@ public class Validate extends Configured implements Tool {
         this.getConf().set(CONTEXT_TIME_TAG, String.valueOf(Timestamp.valueOf(args[3]).getTime()));
         try {
             validateJob(validateOptions);
+            // 延迟订单入库
+            _delay2Hbase(delay2hbaseOpts);
+
             List<Long> countList = mergeJob(mergeOptions);
 
             // 导入到 HBASE 中
@@ -255,8 +269,8 @@ public class Validate extends Configured implements Tool {
             import2Mysql(mysqlFilePath);
 
             // 删除中间文件
-            HdfsTool.deleteDir(mysqlFilePath);
-            HdfsTool.deleteDir(middlePath);
+//            HdfsTool.deleteDir(mysqlFilePath);
+//            HdfsTool.deleteDir(middlePath);
 
             outputInfo(countList);
 
@@ -292,6 +306,10 @@ public class Validate extends Configured implements Tool {
         }else {
             throw new Exception("validateJob error");
         }
+    }
+
+    private void _delay2Hbase(String [] opts) throws Exception {
+        ToolRunner.run(new Delay2Hbase(), opts);
     }
 
     private List<Long> mergeJob(String [] opts) throws Exception {
@@ -366,5 +384,4 @@ public class Validate extends Configured implements Tool {
             e.printStackTrace();
         }
     }
-
 }

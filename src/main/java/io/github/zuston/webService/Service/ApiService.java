@@ -84,7 +84,10 @@ public class ApiService {
     public String siteInfo_HBase(long siteId, int size, int tag, int page) throws IOException {
         String tableName = "ActiveRecord";
 
-        String siteIndexName = tag==1 ? "siteIndex_Out" : "siteIndex_In";
+        String siteIndexName = null;
+        if (tag==1) siteIndexName = "siteIndex_Out";
+        if (tag==2) siteIndexName = "siteIndex_In";
+        if (tag==2) siteIndexName = "delayIndex";
 
         String ewbIndexName = "ewbIndex";
 
@@ -142,11 +145,12 @@ public class ApiService {
         if (date!=null) pojo.settingData = date;
         else return null;
         List<Long> ewbCountList = HBaseTool.GetEwbCount(String.valueOf(siteId));
-        List<String> validateList = MysqlTool.GetTargetInfo(String.valueOf(siteId));
+//        List<String> validateList = MysqlTool.GetTargetInfo(String.valueOf(siteId));
         pojo.traveCount = (ewbCountList.get(0) + ewbCountList.get(1));
         pojo.outCount = String.valueOf(ewbCountList.get(0));
         pojo.inCount  = String.valueOf(ewbCountList.get(1));
-        pojo.delayCount = validateList.get(2);
+//        pojo.delayCount = validateList.get(2);
+        pojo.delayCount = HBaseTool.GetDelayCount(String.valueOf(siteId));
         return gson.toJson(pojo);
     }
 }

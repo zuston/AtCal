@@ -32,6 +32,8 @@ public class HBaseListener implements ApplicationListener<ApplicationStartedEven
     public static HTable SiteIndexTable_IN;
     public static HTable SiteIndexTable_OUT;
 
+    public static HTable DelayIndex;
+
     public static HashMap<String, HTable> Container = new HashMap<String, HTable>();
 
     @Override
@@ -52,6 +54,8 @@ public class HBaseListener implements ApplicationListener<ApplicationStartedEven
             SiteIndexTable_IN = new HTable(configuration, "siteIndex_In");
             SiteIndexTable_OUT = new HTable(configuration, "siteIndex_Out");
 
+            DelayIndex = new HTable(configuration, "delayIndex");
+
             Container.put("Validate", ValidateTable);
             Container.put("trace",TraceTable);
 
@@ -62,6 +66,7 @@ public class HBaseListener implements ApplicationListener<ApplicationStartedEven
             Container.put("siteIndex_In",SiteIndexTable_IN);
             Container.put("siteIndex_Out",SiteIndexTable_OUT);
 
+            Container.put("delayIndex", DelayIndex);
 
         } catch (IOException e) {
             e.printStackTrace();
