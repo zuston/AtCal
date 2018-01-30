@@ -61,7 +61,7 @@ public class SiteIndexMr extends Configured implements Tool {
             int count = 0;
             for (Text value : values){
                 reslist.add(value.toString());
-                if (count >= 100)   break;
+//                if (count >= 100)   break;
                 count ++;
             }
             String indexLine = StringUtils.join(reslist, "#");
