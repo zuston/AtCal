@@ -1,5 +1,6 @@
 package io.github.zuston.task.ActiveTrace;
 
+import io.github.zuston.task.TaskProcess;
 import io.github.zuston.util.HdfsTool;
 import io.github.zuston.util.JobGenerator;
 import io.github.zuston.util.StringTool;
@@ -164,8 +165,11 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
             }
 
             // 不在设置时间的区间内，剔除
-            if (minScanTime < (settingDateTimestamp+86400000) &&
-                    maxScanTime > settingDateTimestamp){
+//            if (minScanTime < (settingDateTimestamp+86400000) &&
+//                    maxScanTime > settingDateTimestamp){
+            // 多设定30分钟区间段
+            if (minScanTime < (settingDateTimestamp) &&
+                    maxScanTime > (settingDateTimestamp+1800000)){
 
                 // 链路准确性过滤, 暴力过滤
                 if (!filterAllTrace(recordList, context))    return;
@@ -313,10 +317,10 @@ public class FilterCurrentActiveTrace extends Configured implements Tool{
         System.out.println(outLine);
     }
 
-
+    // 设定为当前时间点
     private void checkDate(String settingDate) {
         // TODO: 2018/1/15 check 
-        settingDate += " 00:00:00";
+        settingDate += " " + TaskProcess.currentTime().split("\\s")[1];
         settingDateTimestamp = Timestamp.valueOf(settingDate).getTime();
         logger.info("setting the time : {}, timestamp value : {}", settingDate, settingDateTimestamp);
     }
