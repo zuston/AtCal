@@ -38,8 +38,9 @@ public class Delay2Hbase extends Configured implements Tool {
                 String start_id = splitArr[0].split("#")[0];
                 String end_id = splitArr[0].split("#")[1];
                 if (!start_id.equals(end_id)){
-                    context.write(new Text(start_id),new Text(ewbNo));
+                    context.getCounter("Delay2Hbase","NO_MATCH").increment(1);
                 }
+                context.write(new Text(start_id),new Text(ewbNo));
             }catch (Exception e){
                 return;
             }
