@@ -65,9 +65,10 @@ public class Delay2Hbase extends Configured implements Tool {
     static class D2HbaseMapper extends Mapper<LongWritable, Text, ImmutableBytesWritable, Put>{
         @Override
         public void map(LongWritable key, Text text, Context context) throws IOException, InterruptedException {
-            byte[] rowKey = Bytes.toBytes(key.toString());
+            String lineArr [] = text.toString().split("\\t");
+            byte[] rowKey = Bytes.toBytes(lineArr[0]);
             Put condition = new Put(rowKey);
-            condition.add(COLUMN_FAMILIY_INFO,Bytes.toBytes("index"),Bytes.toBytes(text.toString()));
+            condition.add(COLUMN_FAMILIY_INFO,Bytes.toBytes("index"),Bytes.toBytes(lineArr[1]));
             context.write(new ImmutableBytesWritable(rowKey), condition);
         }
     }
