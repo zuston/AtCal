@@ -4,6 +4,7 @@ import io.github.zuston.task.ActiveTrace.*;
 import io.github.zuston.task.ValidateTraceTime.Validate;
 import io.github.zuston.util.FileTool;
 import io.github.zuston.util.HdfsTool;
+import io.github.zuston.util.RedisTool;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -19,6 +20,10 @@ import java.util.List;
 
 // 将分散的分析操作聚合化
 public class TaskProcess extends Configured implements Tool {
+
+    // 设定的日期的 redis key 值
+    public static final String DATE_KEY = "TASK_PROCESS_CACHE_DATE";
+
     // 中间状态文件
     public static final String statusFilePath = "aneTmp";
     // date 缓存文件目录
@@ -59,7 +64,12 @@ public class TaskProcess extends Configured implements Tool {
         };
         ToolRunner.run(new FilterCurrentActiveTrace(), filterOpts);
         cacheOrder(1);
+        cache2Redis(date);
         return 0;
+    }
+
+    private void cache2Redis(String date) throws Exception {
+        if (!RedisTool.set(DATE_KEY,date))  throw new Exception("date cache to redis is error");
     }
 
     private boolean checkOrder(int i) {

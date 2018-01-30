@@ -2,6 +2,7 @@ package io.github.zuston.webService.Service;
 
 import com.google.gson.Gson;
 import io.github.zuston.util.ListTool;
+import io.github.zuston.util.RedisTool;
 import io.github.zuston.webService.Pojo.Site2SitePojo;
 import io.github.zuston.webService.Pojo.TraceInfoPojo;
 import io.github.zuston.webService.Pojo.targetInfoPojo;
@@ -20,6 +21,8 @@ import java.util.*;
  */
 @Service
 public class ApiService {
+
+    public static final String DATE_KEY = "TASK_PROCESS_CACHE_DATE";
 
     @Autowired
     private Gson gson;
@@ -135,7 +138,9 @@ public class ApiService {
 
     public String targetInfo(long siteId) throws IOException, SQLException {
         targetInfoPojo pojo = new targetInfoPojo();
-        pojo.settingData = "2017-10-10";
+        String date = RedisTool.getString(DATE_KEY);
+        if (date!=null) pojo.settingData = date;
+        else return null;
         List<Long> ewbCountList = HBaseTool.GetEwbCount(String.valueOf(siteId));
         List<String> validateList = MysqlTool.GetTargetInfo(String.valueOf(siteId));
         pojo.traveCount = (ewbCountList.get(0) + ewbCountList.get(1));
