@@ -1,7 +1,7 @@
 package io.github.zuston.task.ValidateTraceTime;
 
-import io.github.zuston.util.*;
 import io.github.zuston.basic.Trace.OriginalTraceRecordParser;
+import io.github.zuston.util.*;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
@@ -10,7 +10,9 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
@@ -269,8 +271,9 @@ public class Validate extends Configured implements Tool {
             import2Mysql(mysqlFilePath);
 
             // 删除中间文件
-//            HdfsTool.deleteDir(mysqlFilePath);
-//            HdfsTool.deleteDir(middlePath);
+            HdfsTool.deleteDir(mysqlFilePath);
+            HdfsTool.deleteDir(middlePath);
+            HdfsTool.deleteDir(delayFilePath);
 
             outputInfo(countList);
 

@@ -164,7 +164,7 @@ public class TaskProcess extends Configured implements Tool {
 
     // TODO: 2018/1/30 debug阶段
     public int taskThird(String[] args) throws Exception {
-//        if (!checkOrder(3)) throw new Exception("当前第三阶段，请按照执行顺序执行");
+        if (!checkOrder(3)) throw new Exception("当前第三阶段，请按照执行顺序执行");
         String date = getCacheDate();
         if (date==null) throw new Exception("date缓存不存在，请确认执行步骤!");
         String validatePath = "/temp/C_5_validate";
@@ -177,9 +177,9 @@ public class TaskProcess extends Configured implements Tool {
                 validateTime
         };
         ToolRunner.run(new Validate(), validateOpts);
-//        HdfsTool.deleteDir(validatePath);
-//        HdfsTool.deleteDir(mergePath);
-//        resetOrder();
+        HdfsTool.deleteDir(validatePath);
+        HdfsTool.deleteDir(mergePath);
+        resetOrder();
         return 0;
     }
 

@@ -87,7 +87,7 @@ public class ApiService {
         String siteIndexName = null;
         if (tag==1) siteIndexName = "siteIndex_Out";
         if (tag==2) siteIndexName = "siteIndex_In";
-        if (tag==2) siteIndexName = "delayIndex";
+        if (tag==3) siteIndexName = "delayIndex";
 
         String ewbIndexName = "ewbIndex";
 

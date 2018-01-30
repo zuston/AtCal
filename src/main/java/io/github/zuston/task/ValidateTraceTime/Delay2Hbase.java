@@ -2,6 +2,7 @@ package io.github.zuston.task.ValidateTraceTime;
 
 import io.github.zuston.util.BulkLoadTool;
 import io.github.zuston.util.HbaseTool;
+import io.github.zuston.util.HdfsTool;
 import io.github.zuston.util.JobGenerator;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.client.HTable;
@@ -92,6 +93,7 @@ public class Delay2Hbase extends Configured implements Tool {
 
         if (handlerData(handlerOpts)){
             _2Hbase(_2HbaseOpts);
+            HdfsTool.deleteDir(tempHbaseHfilePath);
         }else {
             throw  new Exception("handlerAbnormal2Hbase_1 error");
         }
