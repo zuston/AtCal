@@ -34,6 +34,8 @@ public class Delay2Hbase extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text text, Context context){
             try {
+                String abnormalTag = text.toString().split("\\t")[1];
+                if (abnormalTag.equals("0"))    return;
                 String lineKey = text.toString().split("\\t")[0];
                 String [] splitArr = lineKey.toString().split("&");
                 String ewbNo = splitArr[1];

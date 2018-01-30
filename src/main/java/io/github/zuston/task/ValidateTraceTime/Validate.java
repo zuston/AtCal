@@ -121,8 +121,9 @@ public class Validate extends Configured implements Tool {
 
             int valueComponent = ((normalTag ? 0 : 1));
             context.getCounter("validate","VALIDATE_LINE_COUNT").increment(1);
-                // 带上 ewbNo 便于延迟订单做筛选
-                context.write(new Text(recordList[0]+"&"+key.toString()),new IntWritable(valueComponent));
+
+            // 带上 ewbNo 便于延迟订单做筛选
+            context.write(new Text(recordList[0]+"&"+key.toString()),new IntWritable(valueComponent));
         }
 
         private boolean checkTrace(List<OrderEntity> traceList) {
