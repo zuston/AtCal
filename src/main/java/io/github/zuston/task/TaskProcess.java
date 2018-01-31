@@ -100,7 +100,7 @@ public class TaskProcess extends Configured implements Tool {
     }
 
     public int taskSecond(String[] args) throws Exception {
-//        if (!checkOrder(2)) throw new Exception("当前为第二阶段，请按照执行顺序执行");
+        if (!checkOrder(2)) throw new Exception("当前为第二阶段，请按照执行顺序执行");
         String distinctPath = "/temp/B_2_distinct";
         String [] distinctOpts = new String[]{
                 filterOutputPath,
@@ -156,12 +156,12 @@ public class TaskProcess extends Configured implements Tool {
         ToolRunner.run(new SiteIndexMr(), siPathOpts_IN);
         ToolRunner.run(new Merge2ActiveTrace(), mergeOpts);
         ToolRunner.run(new ActiveTrace2Hbase(), _2HbaseOpts_OUT);
-//        HdfsTool.deleteDir(distinctPath);
-//        HdfsTool.deleteDir(indexPath_OUT);
-//        HdfsTool.deleteDir(siteIndexPath_OUT);
-//        HdfsTool.deleteDir(siteIndexPath_IN);
-//        HdfsTool.deleteDir(hbaseActiveTracePath_OUT);
-//        HdfsTool.deleteDir(filterOutputPath);
+        HdfsTool.deleteDir(distinctPath);
+        HdfsTool.deleteDir(indexPath_OUT);
+        HdfsTool.deleteDir(siteIndexPath_OUT);
+        HdfsTool.deleteDir(siteIndexPath_IN);
+        HdfsTool.deleteDir(hbaseActiveTracePath_OUT);
+        HdfsTool.deleteDir(filterOutputPath);
         cacheOrder(2);
         return 0;
     }

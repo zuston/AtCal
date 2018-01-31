@@ -180,6 +180,7 @@ public class SiteIndexMr extends Configured implements Tool {
         };
         import2HBase(options, tableName);
         HdfsTool.deleteDir(hFilePath);
+        HdfsTool.deleteDir(mergetOutputFile);
         return 1;
     }
 
