@@ -66,6 +66,13 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
 
             if (!parser.parser(originalSqlRecord))  return;
 
+            if (
+                    parser.getEWB_NO()==null || parser.getTRACE_ID()==null
+                    || parser.getEWB_NO().equals("")
+                    || parser.getTRACE_ID().equals("")
+                    )
+                return;
+
             // 直接 rowKEY : 订单号#traceId
             String rowKeyComponent = String.format("%s#%s", parser.getEWB_NO(), parser.getTRACE_ID());
 
@@ -153,7 +160,7 @@ public class ActiveTrace2Hbase extends Configured implements Tool {
 
         transferConf(strings[2]);
 
-        String samplePath = "/temp/C_activeRecord_Sample_" + strings[2];
+        String samplePath = "/temp/B_activeRecord_Sample_" + strings[2];
 
         String [] sampleOpts = new String[]{
                 strings[0],
