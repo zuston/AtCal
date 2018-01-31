@@ -40,7 +40,7 @@ public class TaskProcess extends Configured implements Tool {
     // 从原始数据中抽取出数据之后的 输出目录
     public static final String filterOutputPath = "/temp/A_1_filter";
     // 合成预测时间的 原始数据
-    public static final String mergePath = "/temp/A_3_merge";
+    public static final String mergePath = "/temp/B_3_merge";
 
     /**
      * 传入参数，设定日期
@@ -100,36 +100,41 @@ public class TaskProcess extends Configured implements Tool {
     }
 
     public int taskSecond(String[] args) throws Exception {
-        if (!checkOrder(2)) throw new Exception("当前为第二阶段，请按照执行顺序执行");
-        String distinctPath = "/temp/A_2_distinct";
+//        if (!checkOrder(2)) throw new Exception("当前为第二阶段，请按照执行顺序执行");
+        String distinctPath = "/temp/B_2_distinct";
         String [] distinctOpts = new String[]{
                 filterOutputPath,
                 distinctPath,
                 reduceNum
         };
 
-        String indexPath_OUT = "/temp/A_2_1_index_OUT";
+        String indexPath_OUT = "/temp/B_2_1_index_OUT";
         String [] indexOpts_OUT = new String[]{
                 distinctPath,
                 indexPath_OUT,
                 reduceNum
         };
 
+        String date = getCacheDate();
+        if (date==null) throw new Exception("date缓存不存在，请确认执行步骤!");
+        String settingTime = date + " " + currentTime().split("\\s")[1];
 
-        String siteIndexPath_OUT = "/temp/A_2_2_siteIndex_OUT";
+        String siteIndexPath_OUT = "/temp/B_2_2_siteIndex_OUT";
         String [] siPathOpts_OUT = new String[]{
                 distinctPath,
                 siteIndexPath_OUT,
                 reduceNum,
-                "out"
+                "out",
+                settingTime
         };
 
-        String siteIndexPath_IN = "/temp/A_2_3_siteIndex_IN";
+        String siteIndexPath_IN = "/temp/B_2_3_siteIndex_IN";
         String [] siPathOpts_IN = new String[]{
                 distinctPath,
                 siteIndexPath_IN,
                 reduceNum,
-                "in"
+                "in",
+                settingTime
         };
 
         String [] mergeOpts = new String[] {
@@ -139,7 +144,7 @@ public class TaskProcess extends Configured implements Tool {
                 reduceNum
         };
 
-        String hbaseActiveTracePath_OUT = "/temp/A_4_activeTrace2hbase_OUT";
+        String hbaseActiveTracePath_OUT = "/temp/B_4_activeTrace2hbase_OUT";
         String [] _2HbaseOpts_OUT = new String[]{
                 mergePath,
                 hbaseActiveTracePath_OUT,
@@ -151,12 +156,12 @@ public class TaskProcess extends Configured implements Tool {
         ToolRunner.run(new SiteIndexMr(), siPathOpts_IN);
         ToolRunner.run(new Merge2ActiveTrace(), mergeOpts);
         ToolRunner.run(new ActiveTrace2Hbase(), _2HbaseOpts_OUT);
-        HdfsTool.deleteDir(distinctPath);
-        HdfsTool.deleteDir(indexPath_OUT);
-        HdfsTool.deleteDir(siteIndexPath_OUT);
-        HdfsTool.deleteDir(siteIndexPath_IN);
-        HdfsTool.deleteDir(hbaseActiveTracePath_OUT);
-        HdfsTool.deleteDir(filterOutputPath);
+//        HdfsTool.deleteDir(distinctPath);
+//        HdfsTool.deleteDir(indexPath_OUT);
+//        HdfsTool.deleteDir(siteIndexPath_OUT);
+//        HdfsTool.deleteDir(siteIndexPath_IN);
+//        HdfsTool.deleteDir(hbaseActiveTracePath_OUT);
+//        HdfsTool.deleteDir(filterOutputPath);
         cacheOrder(2);
         return 0;
     }

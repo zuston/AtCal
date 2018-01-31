@@ -20,6 +20,7 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,31 +39,99 @@ public class SiteIndexMr extends Configured implements Tool {
         OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
         @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            // 直接统计全链路的
+//            String [] lines = value.toString().split("\\t+");
+//            String record = lines[1];
+//            String header = lines[0];
+//            if (!parser.parser(record) || header.split("#").length!=2){
+//                context.getCounter("RelationIndex","parser_error").increment(1);
+//                return;
+//            }
+//            String tag = context.getConfiguration().get("tag");
+//            if (tag.equals("in")){
+//                context.write(new Text(header.split("#")[1]), new Text(parser.getEWB_NO()));
+//                return;
+//            }
+//            context.write(new Text(parser.getSITE_ID()),new Text(parser.getEWB_NO()));
+
+            // 只计算当时的在途订单
             String [] lines = value.toString().split("\\t+");
             String record = lines[1];
             String header = lines[0];
             if (!parser.parser(record) || header.split("#").length!=2){
-                context.getCounter("RelationIndex","parser_error").increment(1);
+                context.getCounter("SiteIndexMrMapper","parser_error").increment(1);
                 return;
             }
-            String tag = context.getConfiguration().get("tag");
-            if (tag.equals("in")){
-                context.write(new Text(header.split("#")[1]), new Text(parser.getEWB_NO()));
-                return;
-            }
-            context.write(new Text(parser.getSITE_ID()),new Text(parser.getEWB_NO()));
+            context.write(new Text(parser.getEWB_NO()),value);
+
         }
     }
 
     static class SiteIndexReducer extends Reducer<Text, Text, Text, Text> {
+        OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
+        @Override
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+//              直接统计全链路
+//            Set<String> container = new HashSet<String>();
+//            for (Text value : values){
+//                container.add(value.toString());
+//            }
+//            String indexLine = StringUtils.join(container, "#");
+//            context.write(key,new Text(indexLine));
+
+
+            // 只统计当前的站点
+            long settingTimeStamp = Long.parseLong(context.getConfiguration().get("settingTime"));
+            long minV = Long.MAX_VALUE;
+            String traveTrace = null;
+
+            for (Text v : values){
+                String [] lines = v.toString().split("\\t+");
+                String record = lines[1];
+                String header = lines[0];
+                if (!parser.parser(record) || header.split("#").length!=2){
+                    context.getCounter("SiteIndexMrReducer","parser_error").increment(1);
+                    continue;
+                }
+                String scanTime = parser.getSCAN_TIME();
+                long timestamp = Timestamp.valueOf(scanTime).getTime();
+                if (timestamp < settingTimeStamp && settingTimeStamp-timestamp < minV) {
+                    traveTrace = v.toString();
+                    minV = settingTimeStamp - timestamp;
+                }
+            }
+
+            if (traveTrace==null) return;
+            String tag = context.getConfiguration().get("tag");
+            String [] lines = traveTrace.split("\\t+");
+            String startId = lines[0].split("#")[0];
+            String endId = lines[0].split("#")[1];
+            String ewbNo =  key.toString();
+
+            if (tag.equals("in")){
+                context.write(new Text(endId),new Text(ewbNo));
+            }else {
+                context.write(new Text(startId),new Text(ewbNo));
+            }
+        }
+    }
+
+    static class MergerMapper extends Mapper<LongWritable, Text, Text, Text> {
+
+        @Override
+        public void map(LongWritable key, Text value, Mapper.Context context) throws IOException, InterruptedException {
+            String [] lines = value.toString().split("\\t");
+            context.write(new Text(lines[0]),new Text(lines[1]));
+        }
+    }
+
+    static class MergerReducer extends Reducer<Text, Text, Text, Text> {
+        OriginalTraceRecordParser parser = new OriginalTraceRecordParser();
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             Set<String> container = new HashSet<String>();
-            int count = 0;
             for (Text value : values){
                 container.add(value.toString());
-//                if (count >= 100)   break;
-                count ++;
             }
             String indexLine = StringUtils.join(container, "#");
             context.write(key,new Text(indexLine));
@@ -82,20 +151,53 @@ public class SiteIndexMr extends Configured implements Tool {
     }
 
     // 第四个参数 为 in or out
+    // 第五个参数 为 设置的时间
     @Override
     public int run(String[] strings) throws Exception {
         this.getConf().set("tag",strings[3]);
+
+        this.getConf().set("settingTime", String.valueOf(Timestamp.valueOf(strings[3]).getTime()));
+
         String tableName = strings[3].equals("in") ? tableName_IN : tableName_OUT;
-        String hFilePath = "/temp/A_siteIndex_"+strings[3];
+        String hFilePath = "/temp/B_siteIndex_"+strings[3];
         if (!generateIndexHfile(strings)) return -1;
-        String [] options = new String[]{
+
+        // 不是全链路操作
+        String mergetOutputFile = "/temp/B_siteIndex_"+strings[3]+"_Merger";
+        String [] mergeOpts = new String[]{
                 strings[1],
+                mergetOutputFile,
+                strings[2]
+        };
+
+        if (!merge(mergeOpts)) return -1;
+
+        String [] options = new String[]{
+//                strings[1],
+                mergetOutputFile,
                 hFilePath,
                 tableName
         };
         import2HBase(options, tableName);
         HdfsTool.deleteDir(hFilePath);
         return 1;
+    }
+
+    private boolean merge(String[] mergeOpts) throws IOException, ClassNotFoundException, InterruptedException {
+        Job job = JobGenerator.SimpleJobGenerator(this, this.getConf(), mergeOpts);
+        job.setJarByClass(SiteIndexMr.class);
+        job.setJobName("siteIndex_merger");
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+
+        job.setMapperClass(MergerMapper.class);
+        job.setReducerClass(MergerReducer.class);
+
+        if (job.waitForCompletion(true))    return true;
+        return false;
     }
 
     private boolean generateIndexHfile(String[] strings) throws IOException, ClassNotFoundException, InterruptedException {

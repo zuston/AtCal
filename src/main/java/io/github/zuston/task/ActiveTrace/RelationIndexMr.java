@@ -92,7 +92,7 @@ public class RelationIndexMr extends Configured implements Tool{
     public int run(String[] strings) throws Exception {
 //        this.getConf().set("tag",strings[3]);
 //        String tableName = strings[3].equals("in") ? tableName_In : tableName_Out;
-        String hFileMidlleFilePath = "/temp/A_ewbIndexHfile";
+        String hFileMidlleFilePath = "/temp/B_ewbIndexHfile";
         if (!generateIndexHfile(strings)) return -1;
         String [] options = new String[]{
                 strings[1],
