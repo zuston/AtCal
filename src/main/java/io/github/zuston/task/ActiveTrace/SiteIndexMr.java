@@ -156,7 +156,7 @@ public class SiteIndexMr extends Configured implements Tool {
     public int run(String[] strings) throws Exception {
         this.getConf().set("tag",strings[3]);
 
-        this.getConf().set("settingTime", String.valueOf(Timestamp.valueOf(strings[3]).getTime()));
+        this.getConf().set("settingTime", String.valueOf(Timestamp.valueOf(strings[4]).getTime()));
 
         String tableName = strings[3].equals("in") ? tableName_IN : tableName_OUT;
         String hFilePath = "/temp/B_siteIndex_"+strings[3];
