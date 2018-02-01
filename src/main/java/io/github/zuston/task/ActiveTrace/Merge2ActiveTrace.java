@@ -113,15 +113,17 @@ public class Merge2ActiveTrace extends Configured implements Tool {
                     context.getCounter("Merge2ActiveTrace","MERGE_ERROR_To_End").increment(1);
                     return;
                 }
-                context.write(new Text(value.toString()+"#"+predictTime),null);
+                // 加上一个随机扰动
+                Integer randomDisturbance = random.nextInt(10);
+                context.write(new Text(value.toString()+"#"+(predictTime+randomDisturbance)),null);
             }
         }
 
         // 评估预测，加上一个随机扰动
         private double predictAlg(String time, String count, String var) {
             Integer randomDisturbance = random.nextInt(10);
-            return Double.valueOf(time) + believeValue * Math.sqrt(Double.parseDouble(var)) / Math.sqrt(Double.parseDouble(count)) + randomDisturbance;
-//            return Double.valueOf(time) + believeValue * Math.sqrt(Double.parseDouble(var));
+//            return Double.valueOf(time) + believeValue * Math.sqrt(Double.parseDouble(var)) / Math.sqrt(Double.parseDouble(count)) + randomDisturbance;
+            return Double.valueOf(time) + believeValue * Math.sqrt(Double.parseDouble(var));
         }
     }
 
