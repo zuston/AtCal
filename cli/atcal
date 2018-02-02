@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# hadoop 集群管理和可视化管理
+webJar=/home/hadoop/jobs/atcal.jar
+
+while getopts "esh" arg
+do
+        case $arg in
+             e)
+                stop-hbase.sh
+                stop-yarn.sh
+                stop-dfs.sh
+                ;;
+             s)
+                start-dfs.sh
+                start-yarn.sh
+                start-hbase.sh
+                sudo service redis start
+                nohup java -jar $webJar &
+                ;;
+             h)
+                echo "-e    exit , stop hbase,hadoop,hdfs and kill the webservice"
+                echo "-s    start, start hdfs,hadoop, hbase and webservice and redis"
+                echo "-h    help"
+                ;;
+             ?)  #当有不认识的选项的时候arg为?
+                echo "unkonw argument"
+                exit 1
+                ;;
+        esac
+done
