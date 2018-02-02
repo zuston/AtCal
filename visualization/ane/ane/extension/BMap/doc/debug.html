@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>detail</title>
+    <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+  </head>
+
+  <style type="text/css" media="all">
+   #clock {
+    font: bold 10pt sans;
+    background: #ddf;
+    padding: 2px;
+    border: 1px solid black;
+    border-radius: 5px;
+   }
+   .loading{
+    width:160px;
+    height:56px;
+    position: absolute;
+    top:50%;
+    left:50%;
+    line-height:56px;
+    color:#fff;
+    padding-left:60px;
+    font-size:15px;
+    background: #000 url(http://img.my.csdn.net/uploads/201211/14/1352886927_7549.gif) no-repeat 10px 50%;
+    opacity: 0.7;
+    z-index:9999;
+    -moz-border-radius:20px;
+    -webkit-border-radius:20px;
+    border-radius:20px;
+    filter:progid:DXImageTransform.Microsoft.Alpha(opacity=70);
+  }
+  </style>
+  <body>
+
+    <div id="app">
+
+      <div id="loading" class="loading" v-if="allLoadingIf[0]">正在全力加载中...</div>
+
+      <div v-if="!allLoadingIf[0]">
+        <ul id="myTab" class="nav nav-tabs">
+          <li class="active"><a href="#home" data-toggle="tab">
+                  site</a>
+          </li>
+          <li><a href="#out" data-toggle="tab">out</a></li>
+          <li><a href="#in" data-toggle="tab">in</a></li>
+          <li><a href="#abnormal" data-toggle="tab">abnormal</a></li>
+          <li><a style="color:red">&nbsp;&nbsp;当前所在站点：{{siteId2Name[siteId]}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=========>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+          <li><a style="color:blue" class="btn" @click="change()">切换至：{{siteId2Name[endId]}}</a></li>
+
+        </ul>
+        <div id="myTabContent" class="tab-content">
+          <div class="tab-pane fade in active" id="home">
+              <!-- 站点信息 -->
+              <div class="container">
+                  <div class="col-md-12">
+                    <h3>{{siteId}}&nbsp;&nbsp;&nbsp;&nbsp;{{siteId2Name[siteId]}}</h3>
+                    <hr>
+                    <!-- <h4>当前设定时间: {{settingData[0]}} <span id="clock"></span></h4> -->
+                    <h4>当前设定时间: {{settingData[0]}}</h4>
+
+                    <hr>
+                    <p>在途订单数目:  {{inTraveCount[0]}}</p>
+                    <p>出站订单数目:  {{outCount[0]}}</p>
+                    <p>进站订单数目:  {{inCount[0]}}</p>
+                    <p>延误订单数目:  {{abnormalCount[0]}}</p>
+
+                  </div>
+              </div>
+          </div>
+          <div class="tab-pane fade" id="out">
+              <!-- out 出站点的信息 -->
+              <div class="container">
+                  <div class="col-md-12">
+                    <div id="loading" class="loading" v-if="outLoadingIf[0]">正在全力加载中...</div>
+
+                    <table class="table table-bordered" v-if="!outLoadingIf[0]">
+                      <caption>出站记录</caption>
+                      <thead>
+                        <tr>
+                          <th>订单号</th>
+                          <th>上一站点</th>
+                          <th>下一站点</th>
+                          <th>发送时间</th>
+                          <th>已用时间(小时)</th>
+                          <th>当前状态</th>
+                          <th>预计到达时间</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(data,index) in outList[0]" @click="showDetail(data['EWB_NO'],1)" v-if="(data['DESCPT']).indexOf('已签收')<0">
+                          <td>{{data["EWB_NO"]}}</td>
+                          <td>{{siteId2Name[data["SITE_ID"]]}}</td>
+                          <td>{{siteId2Name[data["DEST_SITE_ID"]]}}</td>
+                          <td>{{data["SCAN_TIME"]}}</td>
+                          <td>{{((settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60/60).toFixed(0)}}小时{{((settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60%60).toFixed(0)}}分钟</td>
+                          <td v-if="data['SITE_ID']==siteId">{{(settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60>data["PREDICT_TIME"] ? "延误" : "正常"}},&nbsp;此站点在途</td>
+                          <td v-if="data['SITE_ID']!=siteId">{{(settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60>data["PREDICT_TIME"] ? "延误" : "正常"}},&nbsp;非此站点在途</td>
+                          <!-- <td>{{new Date().setTime( ((settingTimestamp-new Date(data["SCAN_TIME"]).getTime())+data["PREDICT_TIME"])* 1000).toGMTString()}}</td> -->
+                          <td>{{formatDate(new Date(Date.parse(new Date(data["SCAN_TIME"]))).setMinutes(data["PREDICT_TIME"].split(".")[0].toLocaleString()))}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <ul class="pagination pagination-sm" v-if="outCurrentPage>=3&&outCurrentPage<=outPageCount[0]-3">
+                        <li><a>当前第{{outCurrentPage}}页</a></li>
+                        <li><a href="#" @click="pageClick(1,1)">1</a></li>
+                        <li><a href="#" @click="pageClick(outCurrentPage-1,1)">{{outCurrentPage-1}}</a></li>
+                        <li><a href="#" @click="pageClick(outCurrentPage,1)">{{outCurrentPage}}</a></li>
+                        <li><a href="#" @click="pageClick(outCurrentPage+1,1)">{{outCurrentPage+1}}</a></li>
+                        <li><a href="#" @click="pageClick(outPageCount,1)">{{outPageCount[0]}}</a></li>
+                        <!-- <li><a href="#">&raquo;</a></li> -->
+                    </ul>
+
+                    <ul class="pagination pagination-sm" v-if="outCurrentPage<3">
+                        <li><a>当前第{{outCurrentPage}}页</a></li>
+                        <li v-for="i in outCurrentPage"><a href="#" @click="pageClick(i,1)">{{i}}</a></li>
+                        <li v-for="i in outCurrentPage+1"><a href="#" @click="pageClick(outCurrentPage+i,1)">{{outCurrentPage+i}}</a></li>
+                        <li><a href="#" @click="pageClick(outPageCount, 1)">{{outPageCount[0]}}</a></li>
+                    </ul>
+
+                    <ul class="pagination pagination-sm" v-if="outCurrentPage>outPageCount[0]-3">
+                        <li><a>当前第{{outCurrentPage[0]}}页</a></li>
+                        <li><a href="#" @click="pageClick(1,1)">1</a></li>
+                        <li v-for="i in outPageCount[0]-outCurrentPage"><a href="#" @click="pageClick(outPageCount[0]-i,1)">{{outPageCount[0]-i}}</a></li>
+                        <!-- <li v-for="i in outCurrentPage+1"><a href="#">{{outCurrentPage+i}}</a></li> -->
+                        <li><a href="#" @click="pageClick(outPageCount[0], 1)">{{outPageCount[0]}}</a></li>
+                    </ul>
+
+                  <hr>
+
+                  <table class="table table-bordered" v-if="showDetailList.length!=0">
+                    <caption>订单链路,订单号： {{showDetailList[0]["EWB_NO"]}}</caption>
+                    <thead>
+                      <tr>
+                        <th>序号</th>
+                        <th>开始站点</th>
+                        <th>送达站点</th>
+                        <th>出发时间</th>
+                        <th>站点信息</th>
+                        <th>预计耗时(分钟)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(data, index) in showDetailList" v-if="settingTimestamp-new Date(data['SCAN_TIME']).getTime()>0">
+                        <td>{{index+1}}</td>
+                        <td>{{data["SITE_NAME"]}}</td>
+                        <td>{{siteId2Name[data["DEST_SITE_ID"]]}}</td>
+                        <td>{{data["SCAN_TIME"]}}</td>
+                        <td>{{data["DESCPT"]}}</td>
+                        <td>{{data["PREDICT_TIME"].split(".")[0]}}</td>
+                        <!-- new Date(tm).toLocaleString() -->
+                      </tr>
+                    </tbody>
+                  </table>
+
+
+                  </div>
+              </div>
+          </div>
+
+          <div class="tab-pane fade" id="in">
+              <!-- in 进站点信息 -->
+              <div class="container">
+                  <div class="col-md-12">
+                    <div id="loading" class="loading" v-if="inLoadingIf[0]">正在全力加载中...</div>
+                    <table class="table table-bordered" v-if="!inLoadingIf[0]">
+                      <caption>进站记录</caption>
+                      <thead>
+                        <tr>
+                          <th>订单号</th>
+                          <th>上一站点</th>
+                          <th>下一站点</th>
+                          <th>发送时间</th>
+                          <th>已用时间(小时)</th>
+                          <th>当前状态</th>
+                          <th>预计到达时间</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(data,index) in inList[0]" @click="showDetail(data['EWB_NO'],2)" v-if="(data['DESCPT']).indexOf('已签收')<0">
+                          <td>{{data["EWB_NO"]}}</td>
+                          <td>{{siteId2Name[data["SITE_ID"]]}}</td>
+                          <td>{{siteId2Name[data["DEST_SITE_ID"]]}}</td>
+                          <td>{{data["SCAN_TIME"]}}</td>
+                          <td>{{((settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60/60).toFixed(0)}}小时{{((settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60%60).toFixed(0)}}分钟</td>
+                          <td v-if="data['SITE_ID']==siteId">{{(settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60>data["PREDICT_TIME"] ? "延误" : "正常"}},&nbsp;此站点在途</td>
+                          <td v-if="data['SITE_ID']!=siteId">{{(settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60>data["PREDICT_TIME"] ? "延误" : "正常"}},&nbsp;非此站点在途</td>
+                          <!-- <td>{{new Date().setTime( ((settingTimestamp-new Date(data["SCAN_TIME"]).getTime())+data["PREDICT_TIME"])* 1000).toGMTString()}}</td> -->
+                          <td>{{formatDate(new Date(Date.parse(new Date(data["SCAN_TIME"]))).setMinutes(data["PREDICT_TIME"].split(".")[0].toLocaleString()))}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <ul class="pagination pagination-sm" v-if="inCurrentPage>=3&&inCurrentPage<=inPageCount[0]-3">
+                        <li><a>当前第{{inCurrentPage}}页</a></li>
+                        <li><a href="#" @click="pageClick(1,2)">1</a></li>
+                        <li><a href="#" @click="pageClick(inCurrentPage-1,2)">{{inCurrentPage-1}}</a></li>
+                        <li><a href="#" @click="pageClick(inCurrentPage,2)">{{inCurrentPage}}</a></li>
+                        <li><a href="#" @click="pageClick(inCurrentPage+1,2)">{{inCurrentPage+1}}</a></li>
+                        <li><a href="#" @click="pageClick(inPageCount,2)">{{inPageCount[0]}}</a></li>
+                        <!-- <li><a href="#">&raquo;</a></li> -->
+                    </ul>
+
+                    <ul class="pagination pagination-sm" v-if="inCurrentPage<3">
+                        <li><a>当前第{{inCurrentPage}}页</a></li>
+                        <li v-for="i in inCurrentPage"><a href="#" @click="pageClick(i,2)">{{i}}</a></li>
+                        <li v-for="i in inCurrentPage+1"><a href="#" @click="pageClick(inCurrentPage+i,2)">{{inCurrentPage+i}}</a></li>
+                        <li><a href="#" @click="pageClick(inPageCount, 2)">{{inPageCount[0]}}</a></li>
+                    </ul>
+
+                    <ul class="pagination pagination-sm" v-if="inCurrentPage>inPageCount[0]-3">
+                        <li><a>当前第{{inCurrentPage}}页</a></li>
+                        <li><a href="#" @click="pageClick(1,2)">1</a></li>
+                        <li v-for="i in inPageCount[0]-inCurrentPage"><a href="#" @click="pageClick(inPageCount[0]-i,2)">{{inPageCount[0]-i}}</a></li>
+                        <!-- <li v-for="i in outCurrentPage+1"><a href="#">{{outCurrentPage+i}}</a></li> -->
+                        <li><a href="#" @click="pageClick(inPageCount[0], 2)">{{inPageCount[0]}}</a></li>
+                    </ul>
+
+                  <hr>
+
+                  <table class="table table-bordered" v-if="inShowDetailList.length!=0">
+                    <caption>订单链路,订单号： {{inShowDetailList[0]["EWB_NO"]}}</caption>
+                    <thead>
+                      <tr>
+                        <th>序号</th>
+                        <th>开始站点</th>
+                        <th>送达站点</th>
+                        <th>出发时间</th>
+                        <th>站点信息</th>
+                        <th>预计耗时(分钟)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(data, index) in inShowDetailList" v-if="settingTimestamp-new Date(data['SCAN_TIME']).getTime()>0">
+                        <td>{{index+1}}</td>
+                        <td>{{data["SITE_NAME"]}}</td>
+                        <td>{{siteId2Name[data["DEST_SITE_ID"]]}}</td>
+                        <td>{{data["SCAN_TIME"]}}</td>
+                        <td>{{data["DESCPT"]}}</td>
+                        <td>{{data["PREDICT_TIME"].split(".")[0]}}</td>
+                        <!-- new Date(tm).toLocaleString() -->
+                      </tr>
+                    </tbody>
+                  </table>
+
+
+                  </div>
+              </div>
+          </div>
+
+          <div class="tab-pane fade" id="abnormal">
+              <!--  不正常件信息 -->
+              <div class="container">
+                  <div class="col-md-12">
+                    <div id="loading" class="loading" v-if="delayLoadingIf[0]">正在全力加载中...</div>
+
+                    <table class="table table-bordered" v-if="!delayLoadingIf[0]">
+                      <caption>不正常件记录</caption>
+                      <thead>
+                        <tr>
+                          <th>订单号</th>
+                          <th>上一站点</th>
+                          <th>下一站点</th>
+                          <th>发送时间</th>
+                          <th>已用时间(小时)</th>
+                          <th>当前状态</th>
+                          <th>预计到达时间</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(data,index) in delayList[0]" @click="showDetail(data['EWB_NO'],3)" v-if="(data['DESCPT']).indexOf('已签收')<0 && (settingTimestamp-new Date(data['SCAN_TIME']).getTime())/1000/60>data['PREDICT_TIME']">
+                          <td>{{data["EWB_NO"]}}</td>
+                          <td>{{siteId2Name[data["SITE_ID"]]}}</td>
+                          <td>{{siteId2Name[data["DEST_SITE_ID"]]}}</td>
+                          <td>{{data["SCAN_TIME"]}}</td>
+                          <td>{{((settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60/60).toFixed(0)}}小时{{((settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60%60).toFixed(0)}}分钟</td>
+                          <td v-if="data['SITE_ID']==siteId">{{(settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60>data["PREDICT_TIME"] ? "延误" : "正常"}},&nbsp;此站点在途</td>
+                          <td v-if="data['SITE_ID']!=siteId">{{(settingTimestamp-new Date(data["SCAN_TIME"]).getTime())/1000/60>data["PREDICT_TIME"] ? "延误" : "正常"}},&nbsp;非此站点在途</td>
+                          <!-- <td>{{new Date().setTime( ((settingTimestamp-new Date(data["SCAN_TIME"]).getTime())+data["PREDICT_TIME"])* 1000).toGMTString()}}</td> -->
+                          <td>{{formatDate(new Date(Date.parse(new Date(data["SCAN_TIME"]))).setMinutes(data["PREDICT_TIME"].split(".")[0].toLocaleString()))}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <ul class="pagination pagination-sm" v-if="delayCurrentPage>=3&&delayCurrentPage<=delayPageCount[0]-3">
+                        <li><a>当前第{{delayCurrentPage}}页</a></li>
+                        <li><a href="#" @click="pageClick(1,3)">1</a></li>
+                        <li><a href="#" @click="pageClick(delayCurrentPage-1,3)">{{delayCurrentPage-1}}</a></li>
+                        <li><a href="#" @click="pageClick(delayCurrentPage,3)">{{delayCurrentPage}}</a></li>
+                        <li><a href="#" @click="pageClick(delayCurrentPage+1,3)">{{delayCurrentPage+1}}</a></li>
+                        <li><a href="#" @click="pageClick(delayPageCount,3)">{{delayPageCount[0]}}</a></li>
+                        <!-- <li><a href="#">&raquo;</a></li> -->
+                    </ul>
+
+                    <ul class="pagination pagination-sm" v-if="delayCurrentPage<3">
+                        <li><a>当前第{{delayCurrentPage}}页</a></li>
+                        <li v-for="i in delayCurrentPage"><a href="#" @click="pageClick(i,3)">{{i}}</a></li>
+                        <li v-for="i in delayCurrentPage+1"><a href="#" @click="pageClick(delayCurrentPage+i,3)">{{delayCurrentPage+i}}</a></li>
+                        <li><a href="#" @click="pageClick(delayPageCount, 3)">{{delayPageCount[0]}}</a></li>
+                    </ul>
+
+                    <ul class="pagination pagination-sm" v-if="delayCurrentPage>delayPageCount[0]-3&&delayPageCount>3">
+                        <li><a>当前第{{delayCurrentPage}}页</a></li>
+                        <li><a href="#" @click="pageClick(1,3)">1</a></li>
+                        <li v-for="i in delayCurrentPage[0]-delayCurrentPage"><a href="#" @click="pageClick(delayPageCount[0]-i,3)">{{delayPageCount[0]-i}}</a></li>
+                        <!-- <li v-for="i in outCurrentPage+1"><a href="#">{{outCurrentPage+i}}</a></li> -->
+                        <li><a href="#" @click="pageClick(delayPageCount[0], 3)">{{delayPageCount[0]}}</a></li>
+                    </ul>
+
+                  <hr>
+
+                  <table class="table table-bordered" v-if="delayShowDetailList.length!=0">
+                    <caption>订单链路,订单号： {{delayShowDetailList[0]["EWB_NO"]}}</caption>
+                    <thead>
+                      <tr>
+                        <th>序号</th>
+                        <th>开始站点</th>
+                        <th>送达站点</th>
+                        <th>出发时间</th>
+                        <th>站点信息</th>
+                        <th>预计耗时(分钟)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(data, index) in delayShowDetailList" v-if="settingTimestamp-new Date(data['SCAN_TIME']).getTime()>0">
+                        <td>{{index+1}}</td>
+                        <td>{{data["SITE_NAME"]}}</td>
+                        <td>{{siteId2Name[data["DEST_SITE_ID"]]}}</td>
+                        <td>{{data["SCAN_TIME"]}}</td>
+                        <td>{{data["DESCPT"]}}</td>
+                        <td>{{data["PREDICT_TIME"].split(".")[0]}}</td>
+                        <!-- new Date(tm).toLocaleString() -->
+                      </tr>
+                    </tbody>
+                  </table>
+
+
+                  </div>
+              </div>
+          </div>
+
+        </div>
+        <h2></h2>
+        </div>
+      </div>
+
+
+    <script>
+      $(function () {
+          $('#myTab li:eq(0) a').tab('show');
+      });
+    </script>
+
+  </body>
+</html>
+<script src="../../../js/vue.js"></script>
+<script src="../../../js/axios.min.js"></script>
+<script src="detail.js"></script>

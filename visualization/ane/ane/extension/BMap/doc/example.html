@@ -1,0 +1,155 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>物流信息</title>
+        <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <style type="text/css">
+            body {
+                margin: 0;
+                padding:0;
+            }
+
+
+            /*#main{
+                float: left;
+                width: 50%;
+                height: 900px;
+                background-color: black;
+
+            }*/
+            /*#detail {
+                width: 50%;
+                height: 900px;
+                margin-left: 50%;
+                background-color: white;
+            }*/
+
+
+
+
+        </style>
+
+        <style type="text/css">
+
+            #detail1in{
+                display: block;
+            }
+            #detail2in{
+                display: none;
+            }
+            #detail3in{
+                display: none;
+            }
+            #detail4in{
+                display: none;
+            }
+            #detail5in{
+                display: none;
+            }
+
+
+            #detail1out{
+                display: none;
+            }
+            #detail2out{
+                display: none;
+            }
+            #detail3out{
+                display: none;
+            }
+            #detail4out{
+                display: none;
+            }
+            #detail5out{
+                display: none;
+            }
+
+
+
+
+            #fivecontent{
+                width: 100%;
+                height: 50%;
+            }
+            #eachdetail{
+                width: 100%;
+                height: 50%;
+            }
+
+
+            #tab_bar {
+                width: 100%;
+                height: 20px;
+                float: left;
+            }
+            #tab_bar ul {
+                padding: 0px;
+                margin: 0px;
+                height: 20px;
+                text-align: center;
+            }
+
+            #tab_bar li {
+                list-style-type: none;
+                float: left;
+                width: 50%;
+                height: 20px;
+                background-color: gray;
+            }
+
+            .tab_css {
+                width: 100%;
+                height: 100%;
+                background-color: white;
+                display: none;
+                float: left;
+            }
+
+
+        </style>
+    </head>
+    <body>
+    <script type="text/javascript">
+        var myclick = function(v) {
+            var llis = document.getElementsByTagName("li");
+            for(var i = 0; i < llis.length; i++) {
+                var lli = llis[i];
+                if(lli === document.getElementById("tab" + v)) {
+                    lli.style.backgroundColor = "orange";
+                } else {
+                    lli.style.backgroundColor = "gray";
+                }
+            }
+
+            var divs = document.getElementsByClassName("tab_css");
+            for(var i = 0; i < divs.length; i++) {
+
+                var divv = divs[i];
+
+                if(divv === document.getElementById("tab" + v + "_content")) {
+                    divv.style.display = "block";
+                } else {
+                    divv.style.display = "none";
+                }
+            }
+
+        }
+
+
+    </script>
+        <div class="row">
+          <div class="col-md-12">
+            <div id="main"></div>
+          </div>
+
+        </div>
+
+        <script src="../../../js/showhide.js"></script>
+        <script src="../../../doc/example/www/js/echarts.js"></script>
+        <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+        <script src="../../../doc/asset/js/jquery.min.js"></script>
+        <script src="example.js"></script>
+    </body>
+</html>
