@@ -87,6 +87,8 @@ public class MysqlTool {
         for (Map.Entry<String, List<TraceInfoPojo>> entry : tempHm.entrySet()){
             reslist.add(entry.getValue());
         }
+        rs.close();
+        statement.close();
         return reslist;
     }
 
@@ -120,5 +122,44 @@ public class MysqlTool {
 
         statement.close();
         return reslist;
+    }
+
+    public static String GetIntraveCount() throws SQLException {
+        Connection connection = MysqlUtil.getInstance();
+        Statement statement = connection.createStatement();
+        String sql = "select sum(total) from validate";
+        ResultSet res = statement.executeQuery(sql);
+        while (res.next()){
+            return res.getString(1);
+        }
+        res.close();
+        statement.close();
+        return null;
+    }
+
+    public static List<List<String>> GetLinkSites(String siteId) throws SQLException {
+        Connection connection = MysqlUtil.getInstance();
+        Statement statement = connection.createStatement();
+        String sqlOut = "select end_id from validate where start_id = " + siteId;
+        String sqlIn = "select start_id from validate where end_id = " + siteId;
+
+        List<List<String>> allList = new ArrayList<List<String>>();
+        List<String> outList = new ArrayList<String>();
+        List<String> inList = new ArrayList<String>();
+
+        ResultSet resOut = statement.executeQuery(sqlOut);
+        while (resOut.next()){
+            outList.add(resOut.getString(1));
+        }
+        resOut.close();
+        ResultSet resIn = statement.executeQuery(sqlIn);
+        while (resIn.next()){
+            inList.add(resIn.getString(1));
+        }
+        resIn.close();
+        statement.close();
+        allList.add(outList);
+        allList.add(inList);
+        return allList;
     }
 }

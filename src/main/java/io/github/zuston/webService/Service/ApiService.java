@@ -153,4 +153,13 @@ public class ApiService {
         pojo.delayCount = HBaseTool.GetDelayCount(String.valueOf(siteId));
         return gson.toJson(pojo);
     }
+
+    public String inTraveCount() throws SQLException {
+        return MysqlTool.GetIntraveCount();
+    }
+
+    public String linkSites(String siteId) throws SQLException {
+        List<List<String>> list = MysqlTool.GetLinkSites(siteId);
+        return gson.toJson(list);
+    }
 }

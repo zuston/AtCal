@@ -64,7 +64,7 @@ public class TaskProcess extends Configured implements Tool {
         };
         ToolRunner.run(new FilterCurrentActiveTrace(), filterOpts);
         cacheOrder(1);
-        cache2Redis(date);
+//        cache2Redis(date);
         return 0;
     }
 
@@ -118,7 +118,7 @@ public class TaskProcess extends Configured implements Tool {
         String date = getCacheDate();
         if (date==null) throw new Exception("date缓存不存在，请确认执行步骤!");
         String settingTime = date + " " + currentTime().split("\\s")[1];
-
+        cache2Redis(settingTime);
         String siteIndexPath_OUT = "/temp/B_2_2_siteIndex_OUT";
         String [] siPathOpts_OUT = new String[]{
                 distinctPath,

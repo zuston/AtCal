@@ -72,9 +72,15 @@ public class HBaseTool {
         }
         int count = 0;
         List<String> reslist = new ArrayList<String>();
+
+        if (ewbNoList == null)  return reslist;
+
         String [] ewbArr = ewbNoList.split("#");
+        int ewbSize = ewbArr.length;
         for (int i=(page-1)*size;i<page*size;i++){
-            reslist.add(ewbArr[i]);
+            if (i<ewbSize){
+                reslist.add(ewbArr[i]);
+            }
         }
 //        for (String ewbNo : ewbNoList.split("#")){
 //            if (count>=size)    break;

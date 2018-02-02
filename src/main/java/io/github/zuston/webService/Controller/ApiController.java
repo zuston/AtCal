@@ -36,6 +36,16 @@ public class ApiController {
         return apiService.targetInfo(siteId);
     }
 
+    @RequestMapping(value = "/inTraveCount", method = RequestMethod.GET)
+    public String inTraveCount() throws SQLException {
+        return apiService.inTraveCount();
+    }
+
+    @RequestMapping(value = "/linkSites", method = RequestMethod.GET)
+    public String linkSites(@RequestParam("siteId")String siteId) throws SQLException {
+        return apiService.linkSites(siteId);
+    }
+
     @RequestMapping(value = "/traceInfo", method = RequestMethod.GET)
     public String test(@RequestParam("ewb")String id) throws IOException {
         return apiService.traceInfo(id);
