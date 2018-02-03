@@ -3,10 +3,11 @@
 # hadoop 集群管理和可视化管理
 webJar=/home/hadoop/jobs/atcal.jar
 
-while getopts "esh" arg
+while getopts "eshr" arg
 do
         case $arg in
              e)
+                ps -ef | grep "java -jar atcal.jar" | grep -v grep | awk '{print $2}' | xargs kill
                 stop-hbase.sh
                 stop-yarn.sh
                 stop-dfs.sh
@@ -18,9 +19,14 @@ do
                 sudo service redis start
                 nohup java -jar $webJar &
                 ;;
+             r)
+                ps -ef | grep "java -jar atcal.jar" | grep -v grep | awk '{print $2}' | xargs kill
+                nohup java -jar $webJar &
+                ;;
              h)
                 echo "-e    exit , stop hbase,hadoop,hdfs and kill the webservice"
                 echo "-s    start, start hdfs,hadoop, hbase and webservice and redis"
+                echo "-r    restart the java webservice, if the api does not work"
                 echo "-h    help"
                 ;;
              ?)  #当有不认识的选项的时候arg为?
