@@ -165,7 +165,7 @@ public class Validate extends Configured implements Tool {
                 count++;
                 nonormal += v.get();
             }
-            if (nonormal > 0)   context.getCounter("ValidateMerge","AbnormalCount").increment(1);
+            if (nonormal > 0)   context.getCounter("ValidateMerge","AbnormalCount").increment(nonormal);
 
 
             context.write(key,new Text(count+"#"+nonormal));
