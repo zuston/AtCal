@@ -186,7 +186,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>spark.example.RddExample</mainClass>
+              <mainClass>spark.core.predict.orderRdd</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>
