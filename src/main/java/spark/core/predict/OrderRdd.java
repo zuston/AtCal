@@ -10,6 +10,7 @@ import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +20,7 @@ import java.util.List;
 /**
  * Created by zuston on 2018/2/27.
  */
-public class OrderRdd {
+public class OrderRdd implements Serializable {
 
     public static TraceRecordParser parser = new TraceRecordParser();
 
