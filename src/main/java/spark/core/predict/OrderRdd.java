@@ -129,6 +129,8 @@ public class OrderRdd implements Serializable {
 
                 timeAndSite += setKey + AGGRETE_BLANK + setValue + BLANK;
             }
+            
+            if (timeAndSite.equals("")) return null;
 
             timeAndSite = timeAndSite.substring(0,timeAndSite.length()-1);
             return new Tuple2<>(ewbNo, timeAndSite);
