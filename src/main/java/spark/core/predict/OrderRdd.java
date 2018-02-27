@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * Created by zuston on 2018/2/27.
  */
-public class orderRdd {
+public class OrderRdd {
 
     public static TraceRecordParser parser = new TraceRecordParser();
 
